@@ -1,7 +1,14 @@
-## Interface: 100002
+## Interface: 120007
 ## Title: CoyFlightline
-## Notes: Adds a direction line to your map while flying
-## Author: Coywolf
+## Notes: Adds a direction line to your minimap, zone map, and world map while flying
+## Author: Coywolf (original), Tharavol (12.x update), Claude (Anthropic)
+## Version: 12.0.001
 ## SavedVariables: CoyFlightline_GlobalData
+## IconTexture: Interface\Icons\ability_mount_flyingcarpet
+## Category-enUS: Map
+## X-Curse-Project-ID: 794376
 
-CoyFlightline.lua
+Core.lua
+Config.lua
+WorldMap.lua
+Minimap.lua

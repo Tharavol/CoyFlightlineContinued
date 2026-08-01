@@ -1,0 +1,13 @@
+# Editor / OS noise
+.vscode/
+.idea/
+*.bak
+*.swp
+*~
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Build / packaging output
+.release/
+*.zip
