@@ -46,7 +46,7 @@ local COLOR_LABELS = {
 }
 
 local function BuildPanel()
-  local category, layout = Settings.RegisterVerticalLayoutCategory("CoyFlightline")
+  local category, layout = Settings.RegisterVerticalLayoutCategory(ns.title)
 
   local function AddHeader(text)
     if layout and CreateSettingsListSectionHeaderInitializer then
@@ -71,7 +71,7 @@ local function BuildPanel()
     Settings.CreateSlider(category, NewSetting(key, NUMBER, name), options, tooltip)
   end
 
-  AddCheckbox("enabled", "Enable CoyFlightline",
+  AddCheckbox("enabled", "Enable " .. ns.title,
     "Master switch. When off, no line is drawn anywhere.")
 
   AddHeader("Where to draw")

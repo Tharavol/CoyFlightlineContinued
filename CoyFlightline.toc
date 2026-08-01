@@ -1,5 +1,5 @@
 ## Interface: 120007
-## Title: CoyFlightline
+## Title: CoyFlightline Continued
 ## Notes: Adds a direction line to your minimap, zone map, and world map while flying
 ## Author: Coywolf (original), Tharavol (12.x update), Claude (Anthropic)
 ## Version: 12.0.001

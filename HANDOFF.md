@@ -7,7 +7,7 @@ Update this file whenever something below stops being true.
 
 ## What this is
 
-`CoyFlightline` — a WoW addon that draws a facing-direction line on the minimap,
+**CoyFlightline Continued** — a WoW addon that draws a facing-direction line on the minimap,
 zone map and world map while flying. Originally by **Coywolf** for patch 10.0.2
 (Jan 2023); rewritten for **Midnight 12.0.7** by **Tharavol** with implementation
 help from **Claude (Anthropic)**.
@@ -15,6 +15,15 @@ help from **Claude (Anthropic)**.
 - Upstream: https://www.curseforge.com/wow/addons/coyflightline (project ID `794376`)
 - Repo: `Tharavol/CoyFlightline`
 - License: MIT, inherited from the original. See [LICENSE](LICENSE).
+
+**Naming.** The display name (`## Title`, README, options panel) is
+"CoyFlightline Continued" — the established WoW convention for a community
+continuation, chosen over "Resurrected"/"Reborn" because those read as specific
+devs' branding. The **addon folder and TOC filename stay `CoyFlightline`** so the
+package installs over the original as a drop-in and existing saved settings
+survive. Do not rename the folder: it would orphan every existing user's
+`CoyFlightline_GlobalData`. Anywhere the name is shown to the user it comes from
+`ns.title`, which reads `## Title` from the TOC.
 
 ## Current status
 

@@ -54,6 +54,10 @@ original is preserved and extended.
   `X-License` metadata, and credits all three contributors.
 - Added a `LICENSE` file carrying the MIT license the original was published
   under, with copyright lines for both Coywolf and Tharavol.
+- Renamed the displayed title to **CoyFlightline Continued** to make it clear
+  this is an unaffiliated community continuation. The addon folder is
+  deliberately still `CoyFlightline`, so this installs over the original and
+  existing saved settings carry across.
 
 ### Notes
 
