@@ -1,0 +1,7 @@
+## Interface: 100002
+## Title: CoyFlightline
+## Notes: Adds a direction line to your map while flying
+## Author: Coywolf
+## SavedVariables: CoyFlightline_GlobalData
+
+CoyFlightline.lua
