@@ -50,8 +50,10 @@ original is preserved and extended.
 - `CoyFlightline.lua` was split into `Core.lua`, `WorldMap.lua`, `Minimap.lua`
   and `Config.lua`. One `OnUpdate` driver now services every surface, with an
   early-out so a grounded player costs almost nothing.
-- TOC gained `Version`, `IconTexture`, `Category-enUS` and `X-Curse-Project-ID`
-  metadata, and credits all three contributors.
+- TOC gained `Version`, `IconTexture`, `Category-enUS`, `X-Curse-Project-ID` and
+  `X-License` metadata, and credits all three contributors.
+- Added a `LICENSE` file carrying the MIT license the original was published
+  under, with copyright lines for both Coywolf and Tharavol.
 
 ### Notes
 

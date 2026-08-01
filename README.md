@@ -68,8 +68,13 @@ A "surface" is a small adapter that knows where its host frame is and where the 
 
 ## Credits
 
-- **Coywolf** — original concept and implementation ([CurseForge project 794376](https://www.curseforge.com/wow/addons/coyflightline)), released 2023-01-06 for patch 10.0.2. The core idea and the facing-to-vector math are theirs.
+- **Coywolf** (`coywolf333`) — original concept and implementation ([CurseForge project 794376](https://www.curseforge.com/wow/addons/coyflightline)), released 2023-01-06 for patch 10.0.2. The core idea and the facing-to-vector math are theirs.
 - **Tharavol** — Midnight (12.x) update and ongoing maintenance.
 - **Claude (Anthropic)** — implementation assistance for the 12.x rewrite.
 
-The original addon carried no license statement. This repository preserves Coywolf's release as its first commit so that authorship is traceable; see [CHANGELOG.md](CHANGELOG.md).
+This repository preserves Coywolf's release as its first commit so that authorship is traceable; see [CHANGELOG.md](CHANGELOG.md).
+
+## License
+
+[MIT](LICENSE), matching the license Coywolf published the original under.
+Copyright © 2023 Coywolf, © 2026 Tharavol.

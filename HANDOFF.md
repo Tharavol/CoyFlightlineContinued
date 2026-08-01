@@ -13,7 +13,8 @@ zone map and world map while flying. Originally by **Coywolf** for patch 10.0.2
 help from **Claude (Anthropic)**.
 
 - Upstream: https://www.curseforge.com/wow/addons/coyflightline (project ID `794376`)
-- Repo: `Tharavol/CoyFlightline` (private)
+- Repo: `Tharavol/CoyFlightline`
+- License: MIT, inherited from the original. See [LICENSE](LICENSE).
 
 ## Current status
 
@@ -118,9 +119,11 @@ Saved variables are only flushed to disk on logout or `/reload`, so check
 
 ## Open questions / TODO
 
-- **Licensing.** Coywolf's original release carried no license statement, so this
-  repo deliberately has no `LICENSE` file. That needs resolving before any public
-  redistribution — ideally by contacting Coywolf. The repo is private for now.
+- **Licensing — resolved.** The CurseForge page lists the original as MIT, so this
+  repo carries MIT with copyright lines for both Coywolf and Tharavol. MIT's only
+  real obligation is that the copyright and permission notice travel with every
+  copy, which `LICENSE` handles. Keep Coywolf's copyright line intact in any
+  redistribution.
 - Frame level on the map surfaces is `canvas:GetFrameLevel() + 150`, carried over
   from the original's `SetFrameLevel(150)`. Not validated against every pin type;
   if the line hides behind something, this is the knob.
