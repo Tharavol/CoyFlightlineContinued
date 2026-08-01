@@ -1,5 +1,11 @@
 # CoyFlightline
 
+> **This is a community continuation, not the original project.** CoyFlightline was
+> created by [Coywolf](https://www.curseforge.com/wow/addons/coyflightline) and last
+> released for patch 10.0.2 in January 2023. This repository picks it up for Midnight
+> and is maintained by Tharavol. It is not affiliated with or endorsed by Coywolf.
+> Redistributed under the original MIT license — see [Credits](#credits) and [LICENSE](LICENSE).
+
 A World of Warcraft addon that draws a line from your position in the direction you are facing, so you can see where a flight will actually take you.
 
 The line appears on three surfaces:

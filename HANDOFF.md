@@ -18,9 +18,9 @@ help from **Claude (Anthropic)**.
 
 ## Current status
 
-The 12.x rewrite is **written but not yet verified in-game.** Nothing in this
-repo has been run against a live client. Work through the checklist at the
-bottom before treating any of it as proven, and record the result here.
+The 12.x rewrite is **written and verified in-game** by Tharavol on 2026-08-01
+against patch 12.0.7. The checklist at the bottom of this file passed. Re-run it
+after any change to the surface adapters or the show conditions.
 
 ## Repo layout and history
 
@@ -101,7 +101,7 @@ Then in game: `/console scriptErrors 1`, and `/reload` after every change.
 Saved variables are only flushed to disk on logout or `/reload`, so check
 `WTF\Account\<ACCOUNT>\SavedVariables\CoyFlightline.lua` after one of those.
 
-## Verification checklist (not yet run)
+## Verification checklist (passed 2026-08-01)
 
 1. `/reload` — no Lua errors, addon not flagged out-of-date.
 2. Fly outdoors — line on minimap, zone map (Shift+M) and world map (M), all
@@ -124,6 +124,10 @@ Saved variables are only flushed to disk on logout or `/reload`, so check
   real obligation is that the copyright and permission notice travel with every
   copy, which `LICENSE` handles. Keep Coywolf's copyright line intact in any
   redistribution.
+- **Contacting Coywolf: deliberately skipped.** They have been inactive for years
+  and the MIT license already grants everything this project needs. The README
+  states plainly that this is an unaffiliated continuation. Revisit only if
+  Coywolf resurfaces.
 - Frame level on the map surfaces is `canvas:GetFrameLevel() + 150`, carried over
   from the original's `SetFrameLevel(150)`. Not validated against every pin type;
   if the line hides behind something, this is the knob.
