@@ -1,10 +1,14 @@
 # Changelog
 
 All notable changes to this project are documented here.
-The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
-Versions follow the original author's scheme: `<expansion major>.<minor>.<build>`.
+The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and
+versions follow [Semantic Versioning](https://semver.org/). This continuation
+starts a fresh version line at 1.0.0; the original author's
+`<expansion major>.<minor>.<build>` scheme is kept only for the 10.0.001 entry
+below, which records his release. The supported client version is declared by
+`## Interface` in the TOC and is no longer duplicated in the version number.
 
-## [12.0.001] - 2026-08-01
+## [1.0.0] - 2026-08-01
 
 First release for WoW Midnight. Effectively a rewrite; the behaviour of the
 original is preserved and extended.
@@ -50,8 +54,8 @@ original is preserved and extended.
 - `CoyFlightline.lua` was split into `Core.lua`, `WorldMap.lua`, `Minimap.lua`
   and `Config.lua`. One `OnUpdate` driver now services every surface, with an
   early-out so a grounded player costs almost nothing.
-- TOC gained `Version`, `IconTexture`, `Category-enUS`, `X-Curse-Project-ID` and
-  `X-License` metadata, and credits all three contributors.
+- TOC gained `Version`, `IconTexture`, `Category-enUS` and `X-License` metadata,
+  and credits all three contributors.
 - Added a `LICENSE` file carrying the MIT license the original was published
   under, with copyright lines for both Coywolf and Tharavol.
 - Renamed the displayed title to **CoyFlightline Continued** to make it clear

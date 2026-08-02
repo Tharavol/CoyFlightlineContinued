@@ -1,0 +1,10 @@
+package-as: CoyFlightline
+
+manual-changelog:
+  filename: CHANGELOG.md
+  markup-type: markdown
+
+ignore:
+  - .github
+  - .luacheckrc
+  - HANDOFF.md
