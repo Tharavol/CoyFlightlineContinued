@@ -169,6 +169,27 @@ function ns.RegisterSurface(surface)
   return surface
 end
 
+-- Line thickness is measured in the coordinate space of the line's parent, not
+-- in screen pixels. The map canvases are scaled — the zone map fits an entire
+-- zone into a small window, so its canvas scale sits well below 1.0 — and a
+-- nominally 1px line there lands on less than one physical pixel, which the
+-- renderer samples into a dotted trail rather than a solid line. Dividing by the
+-- frame's own scale (and multiplying by UIParent's, so the setting still means
+-- "pixels" the way it does on the unscaled minimap) keeps the drawn width
+-- constant on screen at any zoom.
+function ns.ScaledThickness(frame)
+  local thickness = ns.db.thickness
+  if not frame then return thickness end
+
+  local scale = frame:GetEffectiveScale()
+  local reference = UIParent:GetEffectiveScale()
+  if not scale or scale <= 0 or not reference or reference <= 0 then
+    return thickness
+  end
+
+  return thickness * reference / scale
+end
+
 -- Applies the current colour/thickness to a line. Shared by every surface.
 function ns.StyleLine(line)
   local db = ns.db
@@ -177,7 +198,7 @@ function ns.StyleLine(line)
     color = db.customColor or ns.COLORS.white
   end
   line:SetColorTexture(color.r, color.g, color.b, db.alpha)
-  line:SetThickness(db.thickness)
+  line:SetThickness(ns.ScaledThickness(line:GetParent()))
 end
 
 -- Called whenever a setting changes.

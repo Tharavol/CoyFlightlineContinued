@@ -38,6 +38,20 @@ end
 
 function CanvasSurface:ApplyStyle()
   ns.StyleLine(self.line)
+  -- Force RefreshThickness to recompute: the thickness setting may have changed.
+  self.appliedThickness = nil
+end
+
+-- The canvas is rescaled as the map is zoomed, so the scale-compensated
+-- thickness cannot be set once in ApplyStyle; it has to be re-derived while the
+-- line is being drawn. The cache keeps this to a comparison per frame in the
+-- common case where the zoom is not moving.
+function CanvasSurface:RefreshThickness()
+  local thickness = ns.ScaledThickness(self.lineFrame)
+  if thickness ~= self.appliedThickness then
+    self.appliedThickness = thickness
+    self.line:SetThickness(thickness)
+  end
 end
 
 function CanvasSurface:Update(dirX, dirY)
@@ -70,6 +84,7 @@ function CanvasSurface:Update(dirX, dirY)
     return self:HideLine()
   end
 
+  self:RefreshThickness()
   self.line:SetStartPoint("TOPLEFT", originX, -originY)
   self.line:SetEndPoint("TOPLEFT", endX, -endY)
   self.line:Show()

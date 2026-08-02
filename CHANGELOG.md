@@ -8,6 +8,20 @@ starts a fresh version line at 1.0.0; the original author's
 below, which records his release. The supported client version is declared by
 `## Interface` in the TOC and is no longer duplicated in the version number.
 
+## [1.0.1] - 2026-08-02
+
+### Fixed
+
+- **The line no longer breaks up into dots on the zone map.** `SetThickness` is
+  measured in the parent frame's coordinate space, and the map canvases are
+  scaled — the zone map fits a whole zone into a small window, so its canvas
+  scale sits well below 1.0 and a nominally 1px line landed on less than one
+  physical pixel, which the renderer sampled into a dotted trail. Thickness is
+  now divided by the line frame's effective scale (`ns.ScaledThickness`), so the
+  drawn width stays constant on screen. Because the canvas is rescaled as the
+  map zooms, the map surfaces re-derive it each frame rather than once in
+  `ApplyStyle`. The minimap is unscaled, so nothing changes there.
+
 ## [1.0.0] - 2026-08-01
 
 First release for WoW Midnight. Effectively a rewrite; the behaviour of the
