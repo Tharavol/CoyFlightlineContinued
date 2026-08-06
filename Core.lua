@@ -70,8 +70,10 @@ ns.DeepCopy = DeepCopy
 -- to the table reference.
 ns.db = DeepCopy(ns.defaults)
 
+-- ns.title, not addonName: the folder is "CoyFlightline" but the user sees
+-- "CoyFlightline Continued" everywhere else, including the options panel.
 function ns.Print(...)
-  print("|cff66ccffCoyFlightline|r:", ...)
+  print("|cff66ccff" .. ns.title .. "|r:", ...)
 end
 
 --------------------------------------------------------------------------------
