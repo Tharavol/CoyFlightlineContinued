@@ -33,17 +33,21 @@ around a saved-settings constraint that does not exist.
 
 ## Current status
 
-Released as **1.1.0** on 2026-08-05, closing the `Publishable 12.0.7` milestone.
+Released as **1.1.1** on 2026-08-06, closing the `Test harness` milestone.
+No functional change from 1.1.0 — this release lands the automated test suite
+for the addon's pure logic (see "Running the tests" below) plus the
+`Settings.lua` split that made it possible. Nothing in the shipped zip differs.
 
 Verified in-game by Tharavol against patch 12.0.7: the checklist at the bottom of
 this file passed on 2026-08-01 for the original 12.x rewrite, and again on
 2026-08-05 for the surface-base refactor and the event-driven minimap shape and
 instance state. Re-run it after any change to the surface adapters or the show
-conditions.
+conditions — 1.1.1 touched neither, so that pass still stands.
 
 One exception worth knowing: the `/cfl` command reshuffle landed after that
 second pass and shipped without its own in-game check. If bare `/cfl` or
-`/cfl options` misbehaves, that is the first place to look.
+`/cfl options` misbehaves, that is the first place to look. The dispatch specs
+added in 1.1.1 now cover routing, but not the options panel itself.
 
 ## Repo layout and history
 
