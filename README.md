@@ -33,7 +33,7 @@ Then `/reload` or restart the client.
 
 ## Settings
 
-`ESC` → Options → AddOns → CoyFlightline, or `/cfl`.
+`ESC` → Options → AddOns → CoyFlightline, or `/cfl options`.
 
 | Setting | Default | Notes |
 | --- | --- | --- |
@@ -49,7 +49,8 @@ Then `/reload` or restart the client.
 ### Slash commands
 
 ```
-/cfl                     open the options panel
+/cfl                     show the current settings and the command list
+/cfl options             open the options panel
 /cfl on | off            master switch
 /cfl minimap             toggle the minimap line
 /cfl zonemap             toggle the zone map line

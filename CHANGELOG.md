@@ -33,6 +33,11 @@ below, which records his release. The supported client version is declared by
 
 ### Changed
 
+- **`/cfl` on its own now prints your current settings followed by the command
+  list, and the options panel moved to `/cfl options`.** Typing the bare command
+  to see what the addon is doing is the more common case; opening a panel is
+  worth one extra word. `/cfl status` and `/cfl help` still print their halves
+  individually.
 - Surfaces now share an `ns.Surface` base metatable holding `IsAvailable`,
   `HideLine`, `ApplyStyle` and `RefreshThickness`. Each adapter previously
   carried its own copies, and the copies had drifted — the minimap thickness bug

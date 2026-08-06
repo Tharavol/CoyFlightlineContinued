@@ -136,7 +136,8 @@ end
 
 local function PrintHelp()
   ns.Print("commands:")
-  print("  /cfl                     - open the options panel")
+  print("  /cfl                     - show the current settings and this list")
+  print("  /cfl options             - open the options panel")
   print("  /cfl on | off            - master switch")
   print("  /cfl minimap             - toggle the minimap line")
   print("  /cfl zonemap             - toggle the zone map line")
@@ -210,6 +211,11 @@ local function HandleSlash(input)
   local command = args[1]
 
   if not command then
+    -- Bare /cfl answers both "what is it doing" and "what can I type"; the
+    -- panel is behind /cfl options.
+    PrintStatus()
+    PrintHelp()
+  elseif command == "options" then
     OpenPanel()
   elseif command == "help" then
     PrintHelp()
