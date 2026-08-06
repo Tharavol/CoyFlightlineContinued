@@ -33,14 +33,17 @@ around a saved-settings constraint that does not exist.
 
 ## Current status
 
-The 12.x rewrite is **written and verified in-game** by Tharavol on 2026-08-01
-against patch 12.0.7. The checklist at the bottom of this file passed. Re-run it
-after any change to the surface adapters or the show conditions.
+Released as **1.1.0** on 2026-08-05, closing the `Publishable 12.0.7` milestone.
 
-> **Verification owed.** The `Publishable 12.0.7` milestone rewrote every surface
-> adapter onto a shared base and moved the minimap shape and instance checks onto
-> events. That touches both of the areas above, so the checklist has *not* been
-> re-run since. Do that before tagging a release.
+Verified in-game by Tharavol against patch 12.0.7: the checklist at the bottom of
+this file passed on 2026-08-01 for the original 12.x rewrite, and again on
+2026-08-05 for the surface-base refactor and the event-driven minimap shape and
+instance state. Re-run it after any change to the surface adapters or the show
+conditions.
+
+One exception worth knowing: the `/cfl` command reshuffle landed after that
+second pass and shipped without its own in-game check. If bare `/cfl` or
+`/cfl options` misbehaves, that is the first place to look.
 
 ## Repo layout and history
 
@@ -131,7 +134,7 @@ Then in game: `/console scriptErrors 1`, and `/reload` after every change.
 Saved variables are only flushed to disk on logout or `/reload`, so check
 `WTF\Account\<ACCOUNT>\SavedVariables\CoyFlightline.lua` after one of those.
 
-## Verification checklist (passed 2026-08-01)
+## Verification checklist (passed 2026-08-05)
 
 1. `/reload` — no Lua errors, addon not flagged out-of-date.
 2. Fly outdoors — line on minimap, zone map (Shift+M) and world map (M), all

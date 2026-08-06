@@ -8,7 +8,7 @@ starts a fresh version line at 1.0.0; the original author's
 below, which records his release. The supported client version is declared by
 `## Interface` in the TOC and is no longer duplicated in the version number.
 
-## [Unreleased]
+## [1.1.0] - 2026-08-05
 
 ### Fixed
 
