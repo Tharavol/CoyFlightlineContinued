@@ -8,6 +8,47 @@ starts a fresh version line at 1.0.0; the original author's
 below, which records his release. The supported client version is declared by
 `## Interface` in the TOC and is no longer duplicated in the version number.
 
+## [Unreleased]
+
+### Fixed
+
+- **The minimap line is drawn at the right width when the minimap is rescaled.**
+  Thickness is measured in the parent frame's coordinate space, so it has to be
+  divided by that frame's effective scale. The map surfaces re-derived this every
+  frame because the canvas rescales with zoom, but the minimap set it once at
+  style time and then went stale — anyone running a minimap addon that rescales
+  the minimap got a line at the wrong width until some unrelated setting change
+  forced a restyle. All three surfaces now share one implementation.
+- **`/cfl status` reports a usable version on source installs.** `## Version` is
+  a packager token that is only substituted when a release is built, so a git
+  clone or source zip printed the raw token and a bug report pasted from one
+  carried no version at all. It now falls back to `dev`.
+- **A release build would have printed its version as `vv1.0.1`.** Releases are
+  tagged `v1.0.1` and the packager substitutes the tag verbatim, so the version
+  already carries a `v` that the status line was prefixing again. Only ever
+  visible in a packaged build, which is why it survived this long.
+- Chat messages are prefixed with the display name, "CoyFlightline Continued",
+  rather than the addon folder name. Every other user-visible string already
+  came from `ns.title`; this one call site had the folder name hardcoded.
+
+### Changed
+
+- Surfaces now share an `ns.Surface` base metatable holding `IsAvailable`,
+  `HideLine`, `ApplyStyle` and `RefreshThickness`. Each adapter previously
+  carried its own copies, and the copies had drifted — the minimap thickness bug
+  above is exactly that drift. Adapters override only `Update`, so adding a
+  fourth surface is now genuinely one adapter plus a registration call.
+- The minimap shape and the in-instance check are resolved on
+  `PLAYER_ENTERING_WORLD` (and `ZONE_CHANGED_NEW_AREA` for the latter) instead
+  of on every frame. This is a consistency change rather than a performance one:
+  the rotation CVar next to them was already cached, and the saving is a few
+  nanoseconds per frame that nobody will measure. The `OnUpdate` driver itself is
+  deliberately unchanged — `IsFlying()` has no event to hang off.
+- CI validates the TOC: every listed file must exist, `Core.lua` must load first,
+  and `## Interface` must be six digits. Luacheck cannot see the TOC, so none of
+  those failures were caught before, and each of them ships an addon that does
+  not load.
+
 ## [1.0.1] - 2026-08-02
 
 ### Fixed
