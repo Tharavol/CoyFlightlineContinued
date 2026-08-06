@@ -16,20 +16,23 @@ ns.addonName = addonName
 -- against the literal token, because writing that token here would itself be
 -- substituted at release time and break the check in exactly the builds it is
 -- meant to leave alone.
-local version = C_AddOns.GetAddOnMetadata(addonName, "Version")
-if not version or version == "" or version:match("^@.+@$") then
-  version = "dev"
-end
-ns.version = version
-
+--
 -- Releases are tagged "v1.0.1" and the packager substitutes the tag verbatim,
 -- so the version usually carries its own "v" already; only add one when it does
 -- not, and never to "dev".
-if version == "dev" or version:match("^[vV]%d") then
-  ns.versionLabel = version
-else
-  ns.versionLabel = "v" .. version
+function ns.DeriveVersionLabel(raw)
+  if not raw or raw == "" or raw:match("^@.+@$") then
+    return "dev", "dev"
+  end
+
+  if raw:match("^[vV]%d") then
+    return raw, raw
+  end
+
+  return raw, "v" .. raw
 end
+
+ns.version, ns.versionLabel = ns.DeriveVersionLabel(C_AddOns.GetAddOnMetadata(addonName, "Version"))
 -- Display name, kept in sync with the TOC so the options panel and the folder
 -- name can differ. The folder stays "CoyFlightline" so that this installs over
 -- Coywolf's release as a drop-in replacement.

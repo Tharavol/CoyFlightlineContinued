@@ -6,32 +6,6 @@ local addonName, ns = ...
 local BOOLEAN, NUMBER, STRING = "boolean", "number", "string"
 
 --------------------------------------------------------------------------------
--- Saved variables
---------------------------------------------------------------------------------
-
-local function LoadSavedVariables()
-  local saved = CoyFlightline_GlobalData
-
-  if type(saved) == "table" then
-    -- Copy into the existing ns.db rather than replacing it: the Settings API
-    -- binds controls to this exact table reference. Unknown keys are dropped.
-    for key, value in pairs(saved) do
-      local default = ns.defaults[key]
-      if default ~= nil and type(value) == type(default) then
-        if type(value) == "table" then
-          ns.db[key] = ns.DeepCopy(value)
-        else
-          ns.db[key] = value
-        end
-      end
-    end
-  end
-
-  ns.db.dbVersion = ns.DB_VERSION
-  CoyFlightline_GlobalData = ns.db
-end
-
---------------------------------------------------------------------------------
 -- Options panel
 --------------------------------------------------------------------------------
 
@@ -161,47 +135,6 @@ local function PrintStatus()
     db.color, db.thickness, math.floor(db.alpha * 100 + 0.5)))
 end
 
-local function HandleColor(first, second, third)
-  if not first then
-    ns.Print("usage: /cfl color <name> or /cfl color <r> <g> <b>")
-    return
-  end
-
-  if ns.COLORS[first] then
-    ns.db.color = first
-    ns.Refresh()
-    ns.Print("colour set to " .. first .. ".")
-    return
-  end
-
-  local r, g, b = tonumber(first), tonumber(second), tonumber(third)
-  if r and g and b then
-    ns.db.customColor = {
-      r = math.max(0, math.min(1, r)),
-      g = math.max(0, math.min(1, g)),
-      b = math.max(0, math.min(1, b)),
-    }
-    ns.db.color = "custom"
-    ns.Refresh()
-    ns.Print(("colour set to %.2f, %.2f, %.2f."):format(
-      ns.db.customColor.r, ns.db.customColor.g, ns.db.customColor.b))
-    return
-  end
-
-  ns.Print("unknown colour. Try white, yellow, cyan, magenta, green, or three numbers 0-1.")
-end
-
-local function HandleNumber(key, label, value, minValue, maxValue, format)
-  local number = tonumber(value)
-  if not number then
-    ns.Print(("usage: /cfl %s <%s-%s>"):format(key, minValue, maxValue))
-    return
-  end
-  ns.db[key] = math.max(minValue, math.min(maxValue, number))
-  ns.Refresh()
-  ns.Print(("%s set to %s."):format(label, format(ns.db[key])))
-end
-
 local function HandleSlash(input)
   local args = {}
   for word in tostring(input or ""):gmatch("%S+") do
@@ -232,11 +165,12 @@ local function HandleSlash(input)
   elseif command == "worldmap" then
     ToggleBool("showWorldMap", "world map")
   elseif command == "thickness" then
-    HandleNumber("thickness", "thickness", args[2], 1, 6, function(v) return ("%.1f"):format(v) end)
+    ns.Settings.HandleNumber("thickness", "thickness", args[2], 1, 6, function(v) return ("%.1f"):format(v) end)
   elseif command == "alpha" then
-    HandleNumber("alpha", "opacity", args[2], 0.1, 1, function(v) return ("%d%%"):format(math.floor(v * 100 + 0.5)) end)
+    ns.Settings.HandleNumber("alpha", "opacity", args[2], 0.1, 1,
+      function(v) return ("%d%%"):format(math.floor(v * 100 + 0.5)) end)
   elseif command == "color" or command == "colour" then
-    HandleColor(args[2], args[3], args[4])
+    ns.Settings.HandleColor(args[2], args[3], args[4])
   elseif command == "reset" then
     for key, value in pairs(ns.defaults) do
       ns.db[key] = (type(value) == "table") and ns.DeepCopy(value) or value
@@ -262,7 +196,7 @@ loader:SetScript("OnEvent", function(self, _, loadedAddOn)
   if loadedAddOn ~= addonName then return end
   self:UnregisterEvent("ADDON_LOADED")
 
-  LoadSavedVariables()
+  ns.Settings.LoadSavedVariables(CoyFlightline_GlobalData)
 
   -- The Settings API has changed signatures before (10.0.0, then again in
   -- 11.0.2). If it changes again the addon should still work from slash

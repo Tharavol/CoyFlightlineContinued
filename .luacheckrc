@@ -37,3 +37,15 @@ read_globals = {
     "EventUtil", "GetCVarBool", "GetPlayerFacing", "IsFlying", "IsInInstance",
     "UnitOnTaxi",
 }
+
+-- spec/bootstrap.lua stubs the WoW API surface above by assigning straight
+-- into _G, so within spec/ those same names have to be writable rather than
+-- read-only, on top of busted's own describe/it/assert globals.
+files["spec/**/*.lua"] = {
+    std = "+busted",
+    globals = {
+        "C_AddOns", "CreateFrame", "UIParent", "Minimap",
+        "IsInInstance", "GetPlayerFacing", "IsFlying", "UnitOnTaxi",
+        "print",
+    },
+}

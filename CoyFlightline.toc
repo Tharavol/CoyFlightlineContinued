@@ -9,6 +9,7 @@
 ## X-License: MIT
 
 Core.lua
+Settings.lua
 Config.lua
 WorldMap.lua
 Minimap.lua

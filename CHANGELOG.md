@@ -8,6 +8,29 @@ starts a fresh version line at 1.0.0; the original author's
 below, which records his release. The supported client version is declared by
 `## Interface` in the TOC and is no longer duplicated in the version number.
 
+## [Unreleased]
+
+No functional changes for players — this release exists to checkpoint the
+housekeeping below, not to ship anything new.
+
+### Changed
+
+- **Added an automated test suite for the addon's pure logic** — the ray/circle
+  clipping math, facing-to-vector conversion, scale-compensated thickness, the
+  saved-variable type filter, and slash-argument parsing. Runs on stock Lua 5.1
+  via `busted`, gated in CI alongside luacheck and the TOC validator. The
+  in-game checklist in HANDOFF.md is still mandatory — the suite covers pure
+  logic only, deliberately excluding the WoW frame API surface (`CreateFrame`,
+  `C_Map`, and the surface `Update()` methods stay unmocked).
+- Saved-variable loading and slash-argument parsing (`LoadSavedVariables`,
+  `HandleNumber`, `HandleColor`) moved out of `Config.lua` into a new
+  `Settings.lua`, purely so the test suite above could reach them — they used
+  to be locals, unreachable from outside the file. `Config.lua` now calls
+  `ns.Settings.*`.
+- The version-label derivation in `Core.lua` is now a pure, testable
+  `ns.DeriveVersionLabel(raw)` rather than file-scope code, targeting the same
+  class of bug as the `vv1.0.1` fix in 1.1.0.
+
 ## [1.1.0] - 2026-08-05
 
 ### Fixed

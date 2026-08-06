@@ -7,4 +7,6 @@ manual-changelog:
 ignore:
   - .github
   - .luacheckrc
+  - .busted
+  - spec
   - HANDOFF.md

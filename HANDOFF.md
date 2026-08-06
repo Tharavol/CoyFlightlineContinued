@@ -3,7 +3,7 @@
 Context for picking this project up on another machine, or in a fresh AI session.
 Update this file whenever something below stops being true.
 
-**Last updated:** 2026-08-05
+**Last updated:** 2026-08-06
 
 ## What this is
 
@@ -53,14 +53,20 @@ rewrite is reviewable as a single diff against it. Preserve that commit.
 ```
 CoyFlightline.toc   Interface 120007, metadata, load order
 Core.lua            geometry, show conditions, surface registry, OnUpdate driver
+Settings.lua        saved-variable loading, slash-argument parsing (pure logic)
 WorldMap.lua        world map + zone map surfaces
 Minimap.lua         minimap surface
-Config.lua          saved variables, Settings panel, /cfl commands
+Config.lua          options panel, /cfl commands; consumes ns.Settings
 ```
 
 Load order matters: `Core.lua` must come first — it creates `ns.db`, `ns.Surface`
-and the geometry helpers everything else uses at file scope. CI enforces this;
-see `.github/scripts/validate-toc.sh`.
+and the geometry helpers everything else uses at file scope. `Settings.lua` comes
+right after it, since `Config.lua` consumes `ns.Settings` at file scope. CI
+enforces `Core.lua` first; see `.github/scripts/validate-toc.sh`.
+
+`Settings.lua` was split out of `Config.lua` specifically so `LoadSavedVariables`,
+`HandleNumber` and `HandleColor` could be reached from a spec file — they used to
+be locals, unreachable from outside Config.lua. See closed issue #21.
 
 ## Architecture
 
@@ -124,7 +130,37 @@ Worth keeping, because re-deriving them costs a lot of searching:
 
 ## Dev loop
 
-There is no test framework for WoW addons — verification is in-game only.
+**The pure logic (geometry, saved-variable filtering, slash parsing) has an
+automated test suite; everything else is in-game only.** Running the tests is
+not a substitute for the checklist below — re-run the checklist after any
+change to the surface adapters or the show conditions regardless of what the
+suite says. Neither of the two real defects this project has hit (the
+`ScrollContainer` parenting bug, the sub-pixel line-sampling bug) would have
+been caught by the suite; both are WoW API/renderer behaviour, not pure logic.
+See #12 for the full scoping rationale.
+
+### Running the tests
+
+Requires **Lua 5.1** and [busted](https://olivinelabs.com/busted/), installed
+via luarocks:
+
+```
+luarocks install busted
+busted
+```
+
+Run from the repository root — `spec/bootstrap.lua` loads `Core.lua`,
+`Settings.lua`, `Config.lua`, `WorldMap.lua` and `Minimap.lua` with paths
+relative to it, and stubs just enough of the WoW API (`CreateFrame`,
+`C_AddOns`, `UIParent`, `Minimap`, a captured `print`) for them to survive
+loading outside the game. Those stubs exist to survive load, not to model WoW
+behaviour — surface `Update()` methods are deliberately not covered; see the
+comment at the top of `spec/bootstrap.lua` before adding to them.
+
+Specs live in `spec/*_spec.lua`, one file per source file. CI runs `busted`
+alongside `luacheck` and the TOC validator on every push and PR.
+
+### In-game verification
 
 The addon has to live under `Interface\AddOns\CoyFlightline\`. On the original
 machine the user moves/links it there themselves; do not write to the WoW
