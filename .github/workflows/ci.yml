@@ -7,6 +7,16 @@ on:
   workflow_dispatch:
 
 jobs:
+  # Cheap and toolchain-free, so it runs alongside the lint job rather than
+  # behind it: a broken TOC is worth hearing about even if luacheck is red.
+  toc:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Validate the TOC file list and load order
+        run: sh .github/scripts/validate-toc.sh
+
   lint:
     runs-on: ubuntu-latest
     steps:
