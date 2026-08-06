@@ -17,6 +17,7 @@ local MinimapSurface = setmetatable({}, { __index = ns.Surface })
 MinimapSurface.__index = MinimapSurface
 
 local rotateMinimap = false
+local squareMinimap = false
 
 local function RefreshRotationState()
   if C_CVar and C_CVar.GetCVarBool then
@@ -29,12 +30,17 @@ end
 -- Some addons make the minimap square and advertise it through this long
 -- standing community convention. Honouring it costs almost nothing and avoids a
 -- visibly wrong line for those users.
-local function IsSquareMinimap()
+--
+-- Resolved on login and on zoning rather than per frame: the shape is set by
+-- whichever minimap addon is installed and is even more static than the
+-- rotation CVar cached above it.
+local function RefreshShapeState()
   if type(GetMinimapShape) ~= "function" then
-    return false
+    squareMinimap = false
+    return
   end
   local shape = GetMinimapShape()
-  return shape ~= nil and shape ~= "ROUND"
+  squareMinimap = shape ~= nil and shape ~= "ROUND"
 end
 
 function MinimapSurface:Update(dirX, dirY)
@@ -53,7 +59,7 @@ function MinimapSurface:Update(dirX, dirY)
   local centerX, centerY = width / 2, height / 2
 
   local endX, endY
-  if IsSquareMinimap() then
+  if squareMinimap then
     endX, endY = ns.ClipRayToRect(centerX, centerY, dirX, dirY, width, height)
   else
     local radius = math.min(width, height) / 2 - MINIMAP_INSET
@@ -97,10 +103,19 @@ local watcher = CreateFrame("Frame")
 watcher:RegisterEvent("PLAYER_ENTERING_WORLD")
 watcher:RegisterEvent("CVAR_UPDATE")
 watcher:SetScript("OnEvent", function(_, event, cvarName)
-  if event == "CVAR_UPDATE" and cvarName ~= "rotateMinimap" and cvarName ~= "ROTATE_MINIMAP" then
+  if event == "CVAR_UPDATE" then
+    if cvarName ~= "rotateMinimap" and cvarName ~= "ROTATE_MINIMAP" then
+      return
+    end
+    RefreshRotationState()
     return
   end
+
+  -- PLAYER_ENTERING_WORLD: minimap addons have had a chance to load and set
+  -- their shape by now.
   RefreshRotationState()
+  RefreshShapeState()
 end)
 
 RefreshRotationState()
+RefreshShapeState()

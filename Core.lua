@@ -122,6 +122,15 @@ end
 -- Show conditions
 --------------------------------------------------------------------------------
 
+-- Whether the player is in a dungeon, raid, battleground or arena. Cached off
+-- zoning events rather than polled: it can only change by loading a new world,
+-- and GetActiveFacing below runs every frame.
+local inInstance = false
+
+local function RefreshInstanceState()
+  inInstance = IsInInstance() and true or false
+end
+
 local function IsGliding()
   -- Skyriding. Guarded because the API is retail-only.
   if C_PlayerInfo and C_PlayerInfo.GetGlidingInfo then
@@ -136,7 +145,7 @@ end
 local function GetActiveFacing()
   local db = ns.db
   if not db.enabled then return nil end
-  if IsInInstance() then return nil end
+  if inInstance then return nil end
 
   local facing = GetPlayerFacing()
   if not facing then return nil end
@@ -147,6 +156,16 @@ local function GetActiveFacing()
 
   return nil
 end
+
+-- PLAYER_ENTERING_WORLD covers instance entry and exit; ZONE_CHANGED_NEW_AREA
+-- catches the seamless transitions that do not reload the world. Should both
+-- ever miss one, GetPlayerFacing()'s nil-in-instances behaviour still stops a
+-- line being drawn where it should not be.
+local instanceWatcher = CreateFrame("Frame")
+instanceWatcher:RegisterEvent("PLAYER_ENTERING_WORLD")
+instanceWatcher:RegisterEvent("ZONE_CHANGED_NEW_AREA")
+instanceWatcher:SetScript("OnEvent", RefreshInstanceState)
+RefreshInstanceState()
 
 --------------------------------------------------------------------------------
 -- Surface registry
@@ -248,7 +267,8 @@ end
 --------------------------------------------------------------------------------
 -- One OnUpdate for every surface. Facing changes continuously, so there is no
 -- useful event to drive this from, but the early-out below means an idle,
--- grounded player pays for four cheap C calls per frame and nothing else.
+-- grounded player pays for a handful of cheap C calls per frame and nothing
+-- else.
 
 local driver = CreateFrame("Frame", "CoyFlightlineDriver")
 driver:SetSize(1, 1)
