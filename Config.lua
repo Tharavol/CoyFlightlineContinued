@@ -151,7 +151,7 @@ end
 
 local function PrintStatus()
   local db = ns.db
-  ns.Print(("v%s - %s"):format(ns.version, db.enabled and "enabled" or "disabled"))
+  ns.Print(("%s - %s"):format(ns.versionLabel, db.enabled and "enabled" or "disabled"))
   print(("  surfaces: minimap %s, zone map %s, world map %s"):format(
     tostring(db.showMinimap), tostring(db.showZoneMap), tostring(db.showWorldMap)))
   print(("  triggers: flying %s, skyriding %s, taxi %s"):format(

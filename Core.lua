@@ -9,7 +9,27 @@
 local addonName, ns = ...
 
 ns.addonName = addonName
-ns.version = C_AddOns.GetAddOnMetadata(addonName, "Version") or "unknown"
+
+-- The TOC's ## Version is a packager token that BigWigsMods/packager only
+-- substitutes when it builds a release, so a source install (git clone, source
+-- zip) reads back the raw token. Detected by pattern rather than by comparing
+-- against the literal token, because writing that token here would itself be
+-- substituted at release time and break the check in exactly the builds it is
+-- meant to leave alone.
+local version = C_AddOns.GetAddOnMetadata(addonName, "Version")
+if not version or version == "" or version:match("^@.+@$") then
+  version = "dev"
+end
+ns.version = version
+
+-- Releases are tagged "v1.0.1" and the packager substitutes the tag verbatim,
+-- so the version usually carries its own "v" already; only add one when it does
+-- not, and never to "dev".
+if version == "dev" or version:match("^[vV]%d") then
+  ns.versionLabel = version
+else
+  ns.versionLabel = "v" .. version
+end
 -- Display name, kept in sync with the TOC so the options panel and the folder
 -- name can differ. The folder stays "CoyFlightline" so that this remains a
 -- drop-in replacement for Coywolf's release, saved settings and all.
