@@ -3,7 +3,7 @@
 Context for picking this project up on another machine, or in a fresh AI session.
 Update this file whenever something below stops being true.
 
-**Last updated:** 2026-08-01
+**Last updated:** 2026-08-05
 
 ## What this is
 
@@ -20,16 +20,27 @@ help from **Claude (Anthropic)**.
 "CoyFlightline Continued" — the established WoW convention for a community
 continuation, chosen over "Resurrected"/"Reborn" because those read as specific
 devs' branding. The **addon folder and TOC filename stay `CoyFlightline`** so the
-package installs over the original as a drop-in and existing saved settings
-survive. Do not rename the folder: it would orphan every existing user's
-`CoyFlightline_GlobalData`. Anywhere the name is shown to the user it comes from
-`ns.title`, which reads `## Title` from the TOC.
+package installs over the original as a drop-in replacement, keeping the install
+path and project identity existing users already have. Anywhere the name is
+shown to the user it comes from `ns.title`, which reads `## Title` from the TOC.
+
+Note that this is *not* about preserving legacy settings. Coywolf's 10.0.001
+declares `## SavedVariables: CoyFlightline_GlobalData` but never writes to it —
+the whole addon is one `OnUpdate` with a hardcoded white 1px line and no
+configuration — so there is nothing to migrate and nothing to lose. The
+folder-name decision stands on the drop-in install path alone; do not plan
+around a saved-settings constraint that does not exist.
 
 ## Current status
 
 The 12.x rewrite is **written and verified in-game** by Tharavol on 2026-08-01
 against patch 12.0.7. The checklist at the bottom of this file passed. Re-run it
 after any change to the surface adapters or the show conditions.
+
+> **Verification owed.** The `Publishable 12.0.7` milestone rewrote every surface
+> adapter onto a shared base and moved the minimap shape and instance checks onto
+> events. That touches both of the areas above, so the checklist has *not* been
+> re-run since. Do that before tagging a release.
 
 ## Repo layout and history
 
@@ -44,8 +55,9 @@ Minimap.lua         minimap surface
 Config.lua          saved variables, Settings panel, /cfl commands
 ```
 
-Load order matters: `Core.lua` must come first — it creates `ns.db` and the
-geometry helpers everything else uses.
+Load order matters: `Core.lua` must come first — it creates `ns.db`, `ns.Surface`
+and the geometry helpers everything else uses at file scope. CI enforces this;
+see `.github/scripts/validate-toc.sh`.
 
 ## Architecture
 
@@ -55,13 +67,22 @@ Everything hangs off a **surface** abstraction. A surface is a table with:
 | --- | --- |
 | `key` | unique id, diagnostics only |
 | `dbKey` | boolean field in `ns.db` gating this surface |
-| `IsAvailable()` | host frame exists and is visible |
+| `host` | frame the line belongs to; visible == surface usable |
+| `lineFrame` | frame the line is drawn in, and whose scale it is measured against |
+| `line` | the line texture itself |
 | `Update(dirX, dirY)` | position and show the line |
-| `HideLine()` | hide the line |
-| `ApplyStyle()` | re-read colour/thickness from the db |
+
+Everything else — `IsAvailable`, `HideLine`, `ApplyStyle`, `RefreshThickness` —
+comes from the `ns.Surface` base metatable in `Core.lua`; adapters chain to it
+with `setmetatable(Adapter, { __index = ns.Surface })` and override only
+`Update`. Both adapters used to carry their own copies, and the copies drifted:
+the canvas surfaces re-derived their scale-compensated thickness every frame
+while the minimap set it once and went stale for anyone running a rescaled
+minimap. Sharing the base is what keeps that from recurring, so resist
+reimplementing these per adapter.
 
 `Core.lua` registers them, runs one `OnUpdate` across all of them, and owns the
-math. Adding a fourth surface means writing one adapter and calling
+math. Adding a fourth surface really is one adapter plus a call to
 `ns.RegisterSurface`.
 
 Coordinates are a y-down pixel space with origin at the host frame's `TOPLEFT`,
@@ -125,6 +146,10 @@ Saved variables are only flushed to disk on logout or `/reload`, so check
    line disappears.
 7. Options panel — toggle each surface, change colour/thickness/opacity, `/reload`,
    confirm the settings persisted.
+8. `/run Minimap:SetScale(1.5)` — the minimap line keeps the same on-screen width
+   as the map lines. Set it back to `1`. (Covers the shared `RefreshThickness`.)
+9. Zone into a dungeon and back out without relogging — the line disappears
+   inside and returns outdoors. (Covers the cached instance state.)
 
 ## Open questions / TODO
 
@@ -140,7 +165,13 @@ Saved variables are only flushed to disk on logout or `/reload`, so check
 - Frame level on the map surfaces is `canvas:GetFrameLevel() + 150`, carried over
   from the original's `SetFrameLevel(150)`. Not validated against every pin type;
   if the line hides behind something, this is the knob.
-- No packaging (`.pkgmeta`, release workflow), no localization beyond enUS, no
-  Classic TOC variants. All deliberately out of scope so far.
+- **Packaging exists.** `.pkgmeta` plus `.github/workflows/release.yml` build a
+  zip through BigWigsMods/packager on any `v*` tag. Publishing to CurseForge /
+  WoWInterface / Wago additionally needs the `CF_API_KEY` / `WOWI_API_TOKEN` /
+  `WAGO_API_TOKEN` repository secrets, and CurseForge also needs
+  `## X-Curse-Project-ID` in the TOC — see the open question about whether to
+  publish under our own project.
+- No localization beyond enUS and no Classic TOC variants. Both still
+  deliberately out of scope.
 - Minimap inset is a flat 1px (`MINIMAP_INSET` in `Minimap.lua`). May need
   adjusting against the actual border art.

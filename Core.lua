@@ -31,8 +31,8 @@ else
   ns.versionLabel = "v" .. version
 end
 -- Display name, kept in sync with the TOC so the options panel and the folder
--- name can differ. The folder stays "CoyFlightline" so that this remains a
--- drop-in replacement for Coywolf's release, saved settings and all.
+-- name can differ. The folder stays "CoyFlightline" so that this installs over
+-- Coywolf's release as a drop-in replacement.
 ns.title = C_AddOns.GetAddOnMetadata(addonName, "Title") or addonName
 
 local sin, cos, min, huge = math.sin, math.cos, math.min, math.huge
