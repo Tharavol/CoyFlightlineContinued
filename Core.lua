@@ -155,17 +155,18 @@ end
 ns.surfaces = {}
 
 -- surface contract:
---   surface.key      unique id, for diagnostics
---   surface.dbKey    boolean field in ns.db gating this surface
---   surface:IsAvailable()          -> is the host frame present and visible
+--   surface.key        unique id, for diagnostics
+--   surface.dbKey      boolean field in ns.db gating this surface
+--   surface.host       frame the line belongs to; visible == surface usable
+--   surface.lineFrame  frame the line is drawn in, in whose space it is measured
+--   surface.line       the line texture itself
 --   surface:Update(dirX, dirY)     -> position and show the line
---   surface:HideLine()             -> hide the line
---   surface:ApplyStyle()           -> re-read colour/thickness from the db
+--
+-- Everything else comes from the ns.Surface base below. An adapter that only
+-- implements Update is a complete surface.
 function ns.RegisterSurface(surface)
   ns.surfaces[#ns.surfaces + 1] = surface
-  if surface.ApplyStyle then
-    surface:ApplyStyle()
-  end
+  surface:ApplyStyle()
   return surface
 end
 
@@ -190,23 +191,55 @@ function ns.ScaledThickness(frame)
   return thickness * reference / scale
 end
 
--- Applies the current colour/thickness to a line. Shared by every surface.
-function ns.StyleLine(line)
+--------------------------------------------------------------------------------
+-- Surface base
+--------------------------------------------------------------------------------
+-- Behaviour shared by every surface. Adapters chain to this with
+--   setmetatable(Adapter, { __index = ns.Surface })
+-- and override Update. Keeping thickness handling here rather than in each
+-- adapter is what stops the surfaces drifting apart: any frame can be rescaled
+-- by the user or by another addon, so every surface has to re-derive its width
+-- while drawing, not once at style time.
+
+ns.Surface = {}
+ns.Surface.__index = ns.Surface
+
+function ns.Surface:IsAvailable()
+  return self.host:IsVisible() and self.lineFrame:GetWidth() > 0
+end
+
+function ns.Surface:HideLine()
+  self.line:Hide()
+end
+
+-- Colour and opacity only; thickness follows from RefreshThickness.
+function ns.Surface:ApplyStyle()
   local db = ns.db
   local color = ns.COLORS[db.color]
   if not color then
     color = db.customColor or ns.COLORS.white
   end
-  line:SetColorTexture(color.r, color.g, color.b, db.alpha)
-  line:SetThickness(ns.ScaledThickness(line:GetParent()))
+  self.line:SetColorTexture(color.r, color.g, color.b, db.alpha)
+
+  -- The thickness setting may have changed, so drop the cache and re-derive.
+  self.appliedThickness = nil
+  self:RefreshThickness()
+end
+
+-- Called from Update, every frame the line is drawn. The cache keeps this to a
+-- comparison in the common case where nothing has been rescaled.
+function ns.Surface:RefreshThickness()
+  local thickness = ns.ScaledThickness(self.lineFrame)
+  if thickness ~= self.appliedThickness then
+    self.appliedThickness = thickness
+    self.line:SetThickness(thickness)
+  end
 end
 
 -- Called whenever a setting changes.
 function ns.Refresh()
   for _, surface in ipairs(ns.surfaces) do
-    if surface.ApplyStyle then
-      surface:ApplyStyle()
-    end
+    surface:ApplyStyle()
   end
 end
 

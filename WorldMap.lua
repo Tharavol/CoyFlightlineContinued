@@ -10,7 +10,9 @@
 
 local addonName, ns = ...
 
-local CanvasSurface = {}
+-- IsAvailable, HideLine, ApplyStyle and RefreshThickness all come from
+-- ns.Surface; only Update differs between the map canvases and the minimap.
+local CanvasSurface = setmetatable({}, { __index = ns.Surface })
 CanvasSurface.__index = CanvasSurface
 
 local function GetCanvas(mapFrame)
@@ -28,34 +30,8 @@ local function GetMapID(mapFrame)
   return mapFrame.mapID
 end
 
-function CanvasSurface:IsAvailable()
-  return self.mapFrame:IsVisible() and self.lineFrame:GetWidth() > 0
-end
-
-function CanvasSurface:HideLine()
-  self.line:Hide()
-end
-
-function CanvasSurface:ApplyStyle()
-  ns.StyleLine(self.line)
-  -- Force RefreshThickness to recompute: the thickness setting may have changed.
-  self.appliedThickness = nil
-end
-
--- The canvas is rescaled as the map is zoomed, so the scale-compensated
--- thickness cannot be set once in ApplyStyle; it has to be re-derived while the
--- line is being drawn. The cache keeps this to a comparison per frame in the
--- common case where the zoom is not moving.
-function CanvasSurface:RefreshThickness()
-  local thickness = ns.ScaledThickness(self.lineFrame)
-  if thickness ~= self.appliedThickness then
-    self.appliedThickness = thickness
-    self.line:SetThickness(thickness)
-  end
-end
-
 function CanvasSurface:Update(dirX, dirY)
-  local mapID = GetMapID(self.mapFrame)
+  local mapID = GetMapID(self.host)
   if not mapID then
     return self:HideLine()
   end
@@ -84,6 +60,8 @@ function CanvasSurface:Update(dirX, dirY)
     return self:HideLine()
   end
 
+  -- The canvas rescales as the map is zoomed, so this cannot be hoisted into
+  -- ApplyStyle.
   self:RefreshThickness()
   self.line:SetStartPoint("TOPLEFT", originX, -originY)
   self.line:SetEndPoint("TOPLEFT", endX, -endY)
@@ -111,7 +89,7 @@ local function CreateCanvasSurface(mapFrame, key, dbKey)
   local surface = setmetatable({
     key = key,
     dbKey = dbKey,
-    mapFrame = mapFrame,
+    host = mapFrame,
     lineFrame = lineFrame,
     line = line,
   }, CanvasSurface)

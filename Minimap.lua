@@ -11,7 +11,9 @@ local addonName, ns = ...
 
 local MINIMAP_INSET = 1 -- keeps the line from tucking under the minimap border
 
-local MinimapSurface = {}
+-- IsAvailable, HideLine, ApplyStyle and RefreshThickness all come from
+-- ns.Surface; only Update differs between the minimap and the map canvases.
+local MinimapSurface = setmetatable({}, { __index = ns.Surface })
 MinimapSurface.__index = MinimapSurface
 
 local rotateMinimap = false
@@ -33,18 +35,6 @@ local function IsSquareMinimap()
   end
   local shape = GetMinimapShape()
   return shape ~= nil and shape ~= "ROUND"
-end
-
-function MinimapSurface:IsAvailable()
-  return Minimap:IsVisible() and self.lineFrame:GetWidth() > 0
-end
-
-function MinimapSurface:HideLine()
-  self.line:Hide()
-end
-
-function MinimapSurface:ApplyStyle()
-  ns.StyleLine(self.line)
 end
 
 function MinimapSurface:Update(dirX, dirY)
@@ -74,6 +64,10 @@ function MinimapSurface:Update(dirX, dirY)
     return self:HideLine()
   end
 
+  -- The minimap sits at UIParent scale by default, but minimap-replacement
+  -- addons rescale it routinely, so this is re-derived here for the same reason
+  -- the map canvases do it.
+  self:RefreshThickness()
   self.line:SetStartPoint("TOPLEFT", centerX, -centerY)
   self.line:SetEndPoint("TOPLEFT", endX, -endY)
   self.line:Show()
@@ -94,6 +88,7 @@ line:Hide()
 ns.RegisterSurface(setmetatable({
   key = "minimap",
   dbKey = "showMinimap",
+  host = Minimap,
   lineFrame = lineFrame,
   line = line,
 }, MinimapSurface))
