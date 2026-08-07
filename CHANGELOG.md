@@ -8,6 +8,15 @@ starts a fresh version line at 1.0.0; the original author's
 below, which records his release. The supported client version is declared by
 `## Interface` in the TOC and is no longer duplicated in the version number.
 
+## [1.1.2] - 2026-08-07
+
+### Changed
+
+- `/cfl status` now shows the actual RGB values when the line colour is
+  `custom`, instead of just the word "custom". Previously the only way to see
+  what a custom colour actually was was to remember the numbers you set it
+  with.
+
 ## [1.1.1] - 2026-08-06
 
 No functional changes for players — this release exists to checkpoint the

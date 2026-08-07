@@ -3,7 +3,7 @@
 Context for picking this project up on another machine, or in a fresh AI session.
 Update this file whenever something below stops being true.
 
-**Last updated:** 2026-08-06
+**Last updated:** 2026-08-07
 
 ## What this is
 
@@ -33,21 +33,21 @@ around a saved-settings constraint that does not exist.
 
 ## Current status
 
-Released as **1.1.1** on 2026-08-06, closing the `Test harness` milestone.
-No functional change from 1.1.0 — this release lands the automated test suite
-for the addon's pure logic (see "Running the tests" below) plus the
-`Settings.lua` split that made it possible. Nothing in the shipped zip differs.
+Released as **1.1.2** on 2026-08-07. `/cfl status` now prints the actual RGB
+values when the line colour is `custom`, instead of just the word "custom" —
+the only user-visible change since 1.1.1.
 
-Verified in-game by Tharavol against patch 12.0.7: the checklist at the bottom of
-this file passed on 2026-08-01 for the original 12.x rewrite, and again on
-2026-08-05 for the surface-base refactor and the event-driven minimap shape and
-instance state. Re-run it after any change to the surface adapters or the show
-conditions — 1.1.1 touched neither, so that pass still stands.
+Verified in-game against patch 12.0.7: the checklist at the bottom of this file
+passed on 2026-08-01 for the original 12.x rewrite, and again on 2026-08-05 for
+the surface-base refactor and the event-driven minimap shape and instance
+state. Re-run it after any change to the surface adapters or the show
+conditions — 1.1.2 touched neither, so that pass still stands.
 
-One exception worth knowing: the `/cfl` command reshuffle landed after that
-second pass and shipped without its own in-game check. If bare `/cfl` or
-`/cfl options` misbehaves, that is the first place to look. The dispatch specs
-added in 1.1.1 now cover routing, but not the options panel itself.
+The `/cfl` command reshuffle (shipped in 1.1.0) got its own in-game pass on
+2026-08-07 — bare `/cfl`, `/cfl options`, `/cfl status` with a custom colour,
+and `/cfl reset` all checked out, including a live colour change from the
+options panel with no `/reload` needed. That was the one gap the 1.1.1 dispatch
+specs didn't cover, and it's now closed.
 
 ## Repo layout and history
 

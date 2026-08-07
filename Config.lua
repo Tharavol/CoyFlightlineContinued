@@ -131,8 +131,17 @@ local function PrintStatus()
     tostring(db.showMinimap), tostring(db.showZoneMap), tostring(db.showWorldMap)))
   print(("  triggers: flying %s, skyriding %s, taxi %s"):format(
     tostring(db.showWhileFlying), tostring(db.showWhileGliding), tostring(db.showOnTaxi)))
+
+  -- "custom" alone doesn't say what the custom colour actually is; the RGB
+  -- triple is only ever visible via /cfl color otherwise.
+  local colorLabel = db.color
+  if db.color == "custom" and db.customColor then
+    colorLabel = ("custom (%.2f, %.2f, %.2f)"):format(
+      db.customColor.r, db.customColor.g, db.customColor.b)
+  end
+
   print(("  colour %s, thickness %.1f, opacity %d%%"):format(
-    db.color, db.thickness, math.floor(db.alpha * 100 + 0.5)))
+    colorLabel, db.thickness, math.floor(db.alpha * 100 + 0.5)))
 end
 
 local function HandleSlash(input)
