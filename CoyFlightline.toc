@@ -1,4 +1,4 @@
-## Interface: 120007
+## Interface: 120100
 ## Title: CoyFlightline Continued
 ## Notes: Adds a direction line to your minimap, zone map, and world map while flying
 ## Author: Coywolf (original), Tharavol (12.x update), Claude (Anthropic)
@@ -7,6 +7,8 @@
 ## IconTexture: Interface\Icons\ability_mount_flyingcarpet
 ## Category-enUS: Map
 ## X-License: MIT
+
+## X-ReleaseNotes: Draws a line from your character in the direction you are facing so you can see where a flight will actually take you, on three surfaces: the minimap, the zone map (Shift+M), and the world map (M). Each surface has its own toggle. By default the line is drawn while flying, while skyriding, and while travelling on a flight path, and each of those three triggers can be turned off independently; it is never drawn inside instances, because the game does not report your facing there. Line colour (white, yellow, cyan, magenta, green, or a custom RGB triple), thickness (1-6 px) and opacity (10-100%) are all configurable. Configure under Options > AddOns > CoyFlightline or with /cfl options; /cfl on its own prints the current settings and the full command list, and /cfl reset restores defaults.
 
 Core.lua
 Settings.lua

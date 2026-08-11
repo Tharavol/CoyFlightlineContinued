@@ -10,3 +10,4 @@ ignore:
   - .busted
   - spec
   - HANDOFF.md
+  - CHANGELOG.md
