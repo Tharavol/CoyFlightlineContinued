@@ -64,6 +64,8 @@ ns.defaults = {
   showWhileFlying = true,
   showWhileGliding = true,
   showOnTaxi = true,
+
+  debug = false,
 }
 
 ns.COLORS = {

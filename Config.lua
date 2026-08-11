@@ -102,34 +102,47 @@ end
 -- Slash commands
 --------------------------------------------------------------------------------
 
-local function ToggleBool(key, label)
-  ns.db[key] = not ns.db[key]
+-- Lowercases its own value at the point of comparison (S11: only the
+-- keywords being matched get lowercased, not the whole input up front).
+-- Bare toggles and reports the new state; explicit on/off sets it; anything
+-- else is rejected instead of silently doing nothing (S8/S12).
+local function ToggleBool(key, label, value)
+  value = value and value:lower()
+  if value == "on" then
+    ns.db[key] = true
+  elseif value == "off" then
+    ns.db[key] = false
+  elseif value == nil then
+    ns.db[key] = not ns.db[key]
+  else
+    ns.Print(("'%s' - expected 'on' or 'off'."):format(value))
+    return
+  end
   ns.Refresh()
   ns.Print(("%s: %s"):format(label, ns.db[key] and "|cff44ff44on|r" or "|cffff4444off|r"))
 end
 
-local function PrintHelp()
-  ns.Print("commands:")
-  print("  /cfl                     - show the current settings and this list")
-  print("  /cfl options             - open the options panel")
-  print("  /cfl on | off            - master switch")
-  print("  /cfl minimap             - toggle the minimap line")
-  print("  /cfl zonemap             - toggle the zone map line")
-  print("  /cfl worldmap            - toggle the world map line")
-  print("  /cfl thickness <1-6>     - line thickness")
-  print("  /cfl alpha <0.1-1>       - line opacity")
-  print("  /cfl color <name>        - white, yellow, cyan, magenta, green")
-  print("  /cfl color <r> <g> <b>   - custom colour, each 0-1")
-  print("  /cfl status              - show the current settings")
-  print("  /cfl reset               - restore defaults")
+local function HandleDebug(value)
+  value = value and value:lower()
+  if value == "on" then
+    ns.db.debug = true
+  elseif value == "off" then
+    ns.db.debug = false
+  elseif value == nil then
+    ns.db.debug = not ns.db.debug
+  else
+    ns.Print(("'%s' - expected 'on' or 'off'."):format(value))
+    return
+  end
+  ns.Print(("debug logging: %s"):format(ns.db.debug and "|cff44ff44on|r" or "|cffff4444off|r"))
 end
 
 local function PrintStatus()
   local db = ns.db
   ns.Print(("%s - %s"):format(ns.versionLabel, db.enabled and "enabled" or "disabled"))
-  print(("  surfaces: minimap %s, zone map %s, world map %s"):format(
+  ns.Print(("surfaces: minimap %s, zone map %s, world map %s"):format(
     tostring(db.showMinimap), tostring(db.showZoneMap), tostring(db.showWorldMap)))
-  print(("  triggers: flying %s, skyriding %s, taxi %s"):format(
+  ns.Print(("triggers: flying %s, skyriding %s, taxi %s"):format(
     tostring(db.showWhileFlying), tostring(db.showWhileGliding), tostring(db.showOnTaxi)))
 
   -- "custom" alone doesn't say what the custom colour actually is; the RGB
@@ -140,55 +153,143 @@ local function PrintStatus()
       db.customColor.r, db.customColor.g, db.customColor.b)
   end
 
-  print(("  colour %s, thickness %.1f, opacity %d%%"):format(
+  ns.Print(("colour %s, thickness %.1f, opacity %d%%"):format(
     colorLabel, db.thickness, math.floor(db.alpha * 100 + 0.5)))
+  ns.Print(("debug logging: %s"):format(tostring(db.debug)))
 end
 
-local function HandleSlash(input)
-  local args = {}
-  for word in tostring(input or ""):gmatch("%S+") do
-    args[#args + 1] = word:lower()
+local function HandleReset()
+  for key, value in pairs(ns.defaults) do
+    ns.db[key] = (type(value) == "table") and ns.DeepCopy(value) or value
   end
+  ns.Refresh()
+  ns.Print("settings restored to defaults. Reload (/reload) to refresh the options panel.")
+end
 
-  local command = args[1]
-
-  if not command then
-    -- Bare /cfl answers both "what is it doing" and "what can I type"; the
-    -- panel is behind /cfl options.
-    PrintStatus()
-    PrintHelp()
-  elseif command == "options" then
-    OpenPanel()
-  elseif command == "help" then
-    PrintHelp()
-  elseif command == "status" then
-    PrintStatus()
-  elseif command == "on" or command == "off" then
-    ns.db.enabled = (command == "on")
-    ns.Refresh()
-    ns.Print(ns.db.enabled and "enabled." or "disabled.")
-  elseif command == "minimap" then
-    ToggleBool("showMinimap", "minimap")
-  elseif command == "zonemap" then
-    ToggleBool("showZoneMap", "zone map")
-  elseif command == "worldmap" then
-    ToggleBool("showWorldMap", "world map")
-  elseif command == "thickness" then
-    ns.Settings.HandleNumber("thickness", "thickness", args[2], 1, 6, function(v) return ("%.1f"):format(v) end)
-  elseif command == "alpha" then
-    ns.Settings.HandleNumber("alpha", "opacity", args[2], 0.1, 1,
-      function(v) return ("%d%%"):format(math.floor(v * 100 + 0.5)) end)
-  elseif command == "color" or command == "colour" then
-    ns.Settings.HandleColor(args[2], args[3], args[4])
-  elseif command == "reset" then
-    for key, value in pairs(ns.defaults) do
-      ns.db[key] = (type(value) == "table") and ns.DeepCopy(value) or value
+-- Table of { name, help, handler }, so the help list is derived from the same
+-- data Dispatch matches against instead of a second hand-maintained block
+-- that could drift out of sync (S13). "", "config" and "gui" are silent
+-- aliases of "options" (S5): each opens the panel but carries no help text of
+-- its own, so help doesn't repeat the same line four times. Likewise
+-- "colour" is a silent alias of "color".
+local COMMANDS
+local function PrintHelp()
+  ns.Print("commands:")
+  for _, entry in ipairs(COMMANDS) do
+    for _, line in ipairs(entry.help) do
+      ns.Print(line)
     end
-    ns.Refresh()
-    ns.Print("settings restored to defaults. Reload (/reload) to refresh the options panel.")
-  else
-    PrintHelp()
   end
+end
+
+COMMANDS = {
+  {name = "", help = {}, handler = OpenPanel},
+  {
+    name = "options",
+    help = {"/cfl, /cfl options, /cfl config, /cfl gui - open the options panel"},
+    handler = OpenPanel
+  },
+  {name = "config", help = {}, handler = OpenPanel},
+  {name = "gui", help = {}, handler = OpenPanel},
+  {
+    name = "on",
+    help = {"/cfl on | off             - master switch"},
+    handler = function()
+      ns.db.enabled = true
+      ns.Refresh()
+      ns.Print("enabled.")
+    end
+  },
+  {
+    name = "off",
+    help = {},
+    handler = function()
+      ns.db.enabled = false
+      ns.Refresh()
+      ns.Print("disabled.")
+    end
+  },
+  {
+    name = "minimap",
+    help = {"/cfl minimap [on|off]     - toggle or set the minimap line"},
+    handler = function(value) ToggleBool("showMinimap", "minimap", value) end
+  },
+  {
+    name = "zonemap",
+    help = {"/cfl zonemap [on|off]     - toggle or set the zone map line"},
+    handler = function(value) ToggleBool("showZoneMap", "zone map", value) end
+  },
+  {
+    name = "worldmap",
+    help = {"/cfl worldmap [on|off]    - toggle or set the world map line"},
+    handler = function(value) ToggleBool("showWorldMap", "world map", value) end
+  },
+  {
+    name = "thickness",
+    help = {"/cfl thickness <1-6>      - line thickness"},
+    handler = function(value)
+      ns.Settings.HandleNumber("thickness", "thickness", value, 1, 6, function(v) return ("%.1f"):format(v) end)
+    end
+  },
+  {
+    name = "alpha",
+    help = {"/cfl alpha <0.1-1>        - line opacity"},
+    handler = function(value)
+      ns.Settings.HandleNumber("alpha", "opacity", value, 0.1, 1,
+        function(v) return ("%d%%"):format(math.floor(v * 100 + 0.5)) end)
+    end
+  },
+  {
+    name = "color",
+    help = {
+      "/cfl color <name>         - white, yellow, cyan, magenta, green",
+      "/cfl color <r> <g> <b>    - custom colour, each 0-1"
+    },
+    handler = function(first, second, third) ns.Settings.HandleColor(first, second, third) end
+  },
+  {
+    name = "colour",
+    help = {},
+    handler = function(first, second, third) ns.Settings.HandleColor(first, second, third) end
+  },
+  {
+    name = "debug",
+    help = {"/cfl debug [on|off]       - toggle or set debug logging"},
+    handler = HandleDebug
+  },
+  {name = "status", help = {"/cfl status               - show the current settings"}, handler = PrintStatus},
+  {
+    name = "version",
+    help = {"/cfl version              - show the addon version"},
+    handler = function() ns.Print(ns.versionLabel) end
+  },
+  {name = "reset", help = {"/cfl reset                - restore defaults"}, handler = HandleReset}
+}
+
+COMMANDS[#COMMANDS + 1] = {name = "help", help = {"/cfl help                 - show this list"}, handler = PrintHelp}
+
+local function HandleSlash(input)
+  local rawArgs = {}
+  for word in tostring(input or ""):gmatch("%S+") do
+    rawArgs[#rawArgs + 1] = word
+  end
+
+  -- Only the command word is lowercased for matching (S11); arguments are
+  -- passed through in their original case, and any handler that needs to
+  -- match a keyword (on/off, a colour name) lowercases it itself at the
+  -- point of comparison.
+  local command = rawArgs[1] and rawArgs[1]:lower() or ""
+
+  for _, entry in ipairs(COMMANDS) do
+    if entry.name == command then
+      entry.handler(rawArgs[2], rawArgs[3], rawArgs[4])
+      return
+    end
+  end
+
+  -- A typo must be visibly a typo, never a silent fallback (S4).
+  ns.Print(("unknown command: %s"):format(command))
+  PrintHelp()
 end
 
 SLASH_COYFLIGHTLINE1 = "/cfl"

@@ -8,6 +8,38 @@ starts a fresh version line at 1.0.0; the original author's
 below, which records his release. The supported client version is declared by
 `## Interface` in the TOC and is no longer duplicated in the version number.
 
+## [1.2.0] - 2026-08-11
+
+Adopts the cross-addon slash command standard (#30).
+
+### Changed
+
+- Bare `/cfl` now opens the options panel instead of printing status and the command list; that combination moves to `/cfl status` and `/cfl help` separately
+- `minimap`, `zonemap` and `worldmap` now accept an explicit `on`/`off` argument in addition to their existing bare toggle, matching `debug` below
+- An unrecognised command now says which word wasn't understood before falling back to help
+- `options`/`config`/`gui` no longer also print the panel-unavailable fallback text twice-per-call now that they share one handler; `colour` is a silent alias of `color`
+- `PrintHelp` and `PrintStatus` now route every line through `ns.Print`, not just the first
+- Only the command word is lowercased for matching; a colour name is lowercased where it's compared, not the whole input up front
+
+### Added
+
+- `debug [on|off]` and `version`
+- `config` and `gui` as additional aliases for `options`
+
+## [1.1.4] - 2026-08-11
+
+### Changed
+
+- Add repository link to X-ReleaseNotes now that the repo is public and renamed to CoyFlightlineContinued
+
+## [1.1.3] - 2026-08-11
+
+### Changed
+
+- Bump TOC Interface to 120100 for WoW 12.1.0
+- Exclude CHANGELOG.md from the packaged zip
+- Add X-ReleaseNotes with the addon summary (repository link held back until v1.1.4)
+
 ## [1.1.2] - 2026-08-07
 
 ### Changed

@@ -33,7 +33,7 @@ Then `/reload` or restart the client.
 
 ## Settings
 
-`ESC` → Options → AddOns → CoyFlightline, or `/cfl options`.
+`ESC` → Options → AddOns → CoyFlightline, or `/cfl` (also `options`, `config`, `gui`).
 
 | Setting | Default | Notes |
 | --- | --- | --- |
@@ -49,18 +49,20 @@ Then `/reload` or restart the client.
 ### Slash commands
 
 ```
-/cfl                     show the current settings and the command list
-/cfl options             open the options panel
+/cfl                     open the options panel (also: options, config, gui)
 /cfl on | off            master switch
-/cfl minimap             toggle the minimap line
-/cfl zonemap             toggle the zone map line
-/cfl worldmap            toggle the world map line
+/cfl minimap [on|off]    toggle or set the minimap line
+/cfl zonemap [on|off]    toggle or set the zone map line
+/cfl worldmap [on|off]   toggle or set the world map line
 /cfl thickness <1-6>     line thickness
 /cfl alpha <0.1-1>       line opacity
 /cfl color <name>        white, yellow, cyan, magenta, green
 /cfl color <r> <g> <b>   custom colour, each 0-1
+/cfl debug [on|off]      toggle or set debug logging
 /cfl status              show the current settings
+/cfl version             show the addon version
 /cfl reset               restore defaults
+/cfl help                show this list
 ```
 
 Arbitrary colours are only reachable from the slash command — the Settings API has no built-in colour-picker control.

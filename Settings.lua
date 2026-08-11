@@ -47,6 +47,10 @@ function ns.Settings.HandleColor(first, second, third)
     return
   end
 
+  -- Lowercased here, at the point of comparison against the known colour
+  -- names, rather than by the caller blanket-lowering every token up front.
+  first = first:lower()
+
   if ns.COLORS[first] then
     ns.db.color = first
     ns.Refresh()
