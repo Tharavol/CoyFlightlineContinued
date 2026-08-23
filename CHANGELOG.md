@@ -8,6 +8,16 @@ starts a fresh version line at 1.0.0; the original author's
 below, which records his release. The supported client version is declared by
 `## Interface` in the TOC and is no longer duplicated in the version number.
 
+## [1.2.1] - 2026-08-23
+
+### Fixed
+
+- The flightline could render beneath other map layers (e.g. event overlay pins) in specific zones such as Silvermoon City; the line frame now uses a higher frame strata instead of relying on a frame-level offset (#32)
+
+### Changed
+
+- CI now fails loudly instead of silently skipping the CurseForge upload when `CF_API_KEY` is set but `CoyFlightline.toc` has no `X-Curse-Project-ID` (#33)
+
 ## [1.2.0] - 2026-08-11
 
 Adopts the cross-addon slash command standard (#30).

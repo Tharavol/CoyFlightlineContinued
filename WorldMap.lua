@@ -77,6 +77,13 @@ local function CreateCanvasSurface(mapFrame, key, dbKey)
 
   local lineFrame = CreateFrame("Frame", nil, canvas)
   lineFrame:SetAllPoints(canvas)
+  -- A frame-level offset only beats siblings that already existed when the
+  -- offset was chosen. Blizzard's own map pins/overlays (invasion blobs,
+  -- threat overlays, zone transition art) are also children of the canvas
+  -- and use frame levels up to 9000 (see MapCanvasPinFrameLevelsManagerMixin),
+  -- so a fixed +150 loses to them in specific zones (e.g. Silvermoon City).
+  -- A higher strata always wins over level regardless of what Blizzard adds.
+  lineFrame:SetFrameStrata("DIALOG")
   lineFrame:SetFrameLevel(canvas:GetFrameLevel() + 150)
   -- Belt and braces: the line is already clipped to the canvas rectangle by
   -- ClipRayToRect, and the ScrollContainer clips the canvas to the viewport.

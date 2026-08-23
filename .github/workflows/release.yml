@@ -27,6 +27,21 @@ jobs:
           fetch-depth: 0
           ref: ${{ inputs.tag || github.ref }}
 
+      # CF_API_KEY alone is not enough for the packager to upload to CurseForge;
+      # it also needs ## X-Curse-Project-ID in the .toc. Without that field the
+      # packager just skips the CurseForge upload silently -- no error, no log
+      # line -- and the release "succeeds" with only the GitHub zip attached.
+      # Catch that mismatch here instead of on release day. See issue #7 for
+      # the (still open) decision on publishing under our own CurseForge project.
+      - name: Guard against silent CurseForge no-op
+        env:
+          CF_API_KEY: ${{ secrets.CF_API_KEY }}
+        run: |
+          if [ -n "$CF_API_KEY" ] && ! grep -q '^## X-Curse-Project-ID:' CoyFlightline.toc; then
+            echo "::error::CF_API_KEY is set but CoyFlightline.toc has no X-Curse-Project-ID -- the CurseForge upload would silently no-op. Add the field or remove the CF_API_KEY secret." >&2
+            exit 1
+          fi
+
       - name: Package and release
         uses: BigWigsMods/packager@v2
         env:
@@ -34,7 +49,7 @@ jobs:
           # Optional. Set these repository secrets to publish automatically;
           # without them the packager just attaches the zip to the GitHub
           # release. CF_API_KEY additionally needs ## X-Curse-Project-ID in
-          # the .toc.
+          # the .toc -- see the guard step above.
           CF_API_KEY: ${{ secrets.CF_API_KEY }}
           WOWI_API_TOKEN: ${{ secrets.WOWI_API_TOKEN }}
           WAGO_API_TOKEN: ${{ secrets.WAGO_API_TOKEN }}
