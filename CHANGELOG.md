@@ -12,6 +12,9 @@ Addon summary (formerly the TOC's `## X-ReleaseNotes`): Draws a line from your c
 
 ## [Unreleased]
 
+### Changed
+- Retail only: the TOC declares `AllowLoadGameType: standard`, so World of Warcraft: Forever lists the addon as unavailable for that game type instead of out of date (#36). Forever has no flying.
+
 ### Internal
 
 - Removed guards around retail APIs that always exist (`C_PlayerInfo.GetGlidingInfo`, `C_CVar.GetCVarBool`, map-canvas accessors, `EventUtil`, Settings dropdown/header helpers) and the `pcall` around the options panel build, so a broken panel now surfaces as a Lua error (#34)
