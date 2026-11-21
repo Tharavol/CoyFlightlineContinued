@@ -134,10 +134,10 @@ describe("Core.lua", function()
     end)
   end)
 
-  describe("DeepCopy", function()
+  describe("Merge", function()
     it("copies nested tables without aliasing the source", function()
       local source = { a = 1, b = { c = 2 } }
-      local copy = ns.DeepCopy(source)
+      local copy = ns.Merge({}, source)
 
       copy.b.c = 99
 

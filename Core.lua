@@ -1,25 +1,14 @@
 -- Core.lua
--- Shared state, geometry, show-conditions, and the update driver.
---
--- The addon draws one line per "surface" (world map, zone map, minimap). Each
--- surface is a small adapter that knows how to find its own frame and where the
--- player sits inside it; all of them share the ray math and the show-condition
--- logic in this file.
+-- Shared state, geometry, show-conditions, and the update driver. Each map
+-- "surface" (world map, zone map, minimap) is a small adapter over this.
 
 local addonName, ns = ...
 
 ns.addonName = addonName
 
--- The TOC's ## Version is a packager token that BigWigsMods/packager only
--- substitutes when it builds a release, so a source install (git clone, source
--- zip) reads back the raw token. Detected by pattern rather than by comparing
--- against the literal token, because writing that token here would itself be
--- substituted at release time and break the check in exactly the builds it is
--- meant to leave alone.
---
--- Releases are tagged "v1.0.1" and the packager substitutes the tag verbatim,
--- so the version usually carries its own "v" already; only add one when it does
--- not, and never to "dev".
+-- A source install reads back the unsubstituted packager token. Matched by
+-- pattern: the literal token here would itself be substituted at release time.
+-- Tags already carry a "v"; add one only when missing.
 function ns.DeriveVersionLabel(raw)
   if not raw or raw == "" or raw:match("^@.+@$") then
     return "dev", "dev"
@@ -33,9 +22,8 @@ function ns.DeriveVersionLabel(raw)
 end
 
 ns.version, ns.versionLabel = ns.DeriveVersionLabel(C_AddOns.GetAddOnMetadata(addonName, "Version"))
--- Display name, kept in sync with the TOC so the options panel and the folder
--- name can differ. The folder stays "CoyFlightline" so that this installs over
--- Coywolf's release as a drop-in replacement.
+-- Display name from the TOC; the folder stays "CoyFlightline" so this installs
+-- over the original release.
 ns.title = C_AddOns.GetAddOnMetadata(addonName, "Title") or addonName
 
 local sin, cos, min, huge = math.sin, math.cos, math.min, math.huge
@@ -76,27 +64,23 @@ ns.COLORS = {
   green   = { r = 0.35, g = 1.00, b = 0.45 },
 }
 
-local function DeepCopy(source)
-  local copy = {}
+-- Copies `source` into `target`, deep-copying nested tables. With `template`,
+-- only keys present in it with a matching value type are copied.
+function ns.Merge(target, source, template)
   for key, value in pairs(source) do
-    if type(value) == "table" then
-      copy[key] = DeepCopy(value)
-    else
-      copy[key] = value
+    local default = template and template[key]
+    if not template or (default ~= nil and type(value) == type(default)) then
+      target[key] = type(value) == "table" and ns.Merge({}, value) or value
     end
   end
-  return copy
+  return target
 end
-ns.DeepCopy = DeepCopy
 
--- Populated with defaults immediately so that surfaces created before
--- ADDON_LOADED still have something to read. Config.lua copies the saved values
--- into this same table rather than replacing it, because the Settings API binds
--- to the table reference.
-ns.db = DeepCopy(ns.defaults)
+-- Filled with defaults now so surfaces created before ADDON_LOADED can read it.
+-- Saved values are later merged into this same table: the Settings API binds to
+-- the table reference.
+ns.db = ns.Merge({}, ns.defaults)
 
--- ns.title, not addonName: the folder is "CoyFlightline" but the user sees
--- "CoyFlightline Continued" everywhere else, including the options panel.
 function ns.Print(...)
   print("|cff66ccff" .. ns.title .. "|r:", ...)
 end
@@ -158,17 +142,14 @@ local function RefreshInstanceState()
   inInstance = IsInInstance() and true or false
 end
 
+-- Skyriding.
 local function IsGliding()
-  -- Skyriding. Guarded because the API is retail-only.
-  if C_PlayerInfo and C_PlayerInfo.GetGlidingInfo then
-    return (C_PlayerInfo.GetGlidingInfo())
-  end
-  return false
+  return (C_PlayerInfo.GetGlidingInfo())
 end
 
 -- Returns the player's facing when the line should be drawn, otherwise nil.
 -- GetPlayerFacing() is #noinstance: it returns nil in dungeons, raids,
--- battlegrounds and arenas, which is also exactly where we do not want a line.
+-- battlegrounds and arenas, which is also where no line is wanted.
 local function GetActiveFacing()
   local db = ns.db
   if not db.enabled then return nil end
@@ -185,9 +166,8 @@ local function GetActiveFacing()
 end
 
 -- PLAYER_ENTERING_WORLD covers instance entry and exit; ZONE_CHANGED_NEW_AREA
--- catches the seamless transitions that do not reload the world. Should both
--- ever miss one, GetPlayerFacing()'s nil-in-instances behaviour still stops a
--- line being drawn where it should not be.
+-- catches seamless transitions. GetPlayerFacing()'s nil in instances is the
+-- backstop if both miss one.
 local instanceWatcher = CreateFrame("Frame")
 instanceWatcher:RegisterEvent("PLAYER_ENTERING_WORLD")
 instanceWatcher:RegisterEvent("ZONE_CHANGED_NEW_AREA")
@@ -216,14 +196,9 @@ function ns.RegisterSurface(surface)
   return surface
 end
 
--- Line thickness is measured in the coordinate space of the line's parent, not
--- in screen pixels. The map canvases are scaled — the zone map fits an entire
--- zone into a small window, so its canvas scale sits well below 1.0 — and a
--- nominally 1px line there lands on less than one physical pixel, which the
--- renderer samples into a dotted trail rather than a solid line. Dividing by the
--- frame's own scale (and multiplying by UIParent's, so the setting still means
--- "pixels" the way it does on the unscaled minimap) keeps the drawn width
--- constant on screen at any zoom.
+-- Line thickness is in the parent's coordinate space, not screen pixels. On a
+-- canvas scaled well below 1.0 (the zone map) a 1px line renders as a dotted
+-- trail, so scale by UIParent / frame to keep the on-screen width constant.
 function ns.ScaledThickness(frame)
   local thickness = ns.db.thickness
   if not frame then return thickness end
@@ -242,10 +217,8 @@ end
 --------------------------------------------------------------------------------
 -- Behaviour shared by every surface. Adapters chain to this with
 --   setmetatable(Adapter, { __index = ns.Surface })
--- and override Update. Keeping thickness handling here rather than in each
--- adapter is what stops the surfaces drifting apart: any frame can be rescaled
--- by the user or by another addon, so every surface has to re-derive its width
--- while drawing, not once at style time.
+-- and override Update. Any frame can be rescaled by the user or another addon,
+-- so every surface re-derives its width while drawing, not once at style time.
 
 ns.Surface = {}
 ns.Surface.__index = ns.Surface
@@ -261,10 +234,7 @@ end
 -- Colour and opacity only; thickness follows from RefreshThickness.
 function ns.Surface:ApplyStyle()
   local db = ns.db
-  local color = ns.COLORS[db.color]
-  if not color then
-    color = db.customColor or ns.COLORS.white
-  end
+  local color = ns.COLORS[db.color] or db.customColor
   self.line:SetColorTexture(color.r, color.g, color.b, db.alpha)
 
   -- The thickness setting may have changed, so drop the cache and re-derive.
@@ -292,10 +262,8 @@ end
 --------------------------------------------------------------------------------
 -- Driver
 --------------------------------------------------------------------------------
--- One OnUpdate for every surface. Facing changes continuously, so there is no
--- useful event to drive this from, but the early-out below means an idle,
--- grounded player pays for a handful of cheap C calls per frame and nothing
--- else.
+-- One OnUpdate for every surface: facing has no change event. A grounded
+-- player costs a few cheap C calls per frame.
 
 local driver = CreateFrame("Frame", "CoyFlightlineDriver")
 driver:SetSize(1, 1)

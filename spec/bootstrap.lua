@@ -67,8 +67,9 @@ local function InstallGlobals()
       if field == "Title" then return "CoyFlightline Continued" end
       return nil
     end,
-    IsAddOnLoaded = function() return false end,
   }
+  _G.C_CVar = { GetCVarBool = function() return false end }
+  _G.EventUtil = { ContinueOnAddOnLoaded = noop }
 
   _G.UIParent = NewFrameStub()
   _G.Minimap = NewFrameStub()

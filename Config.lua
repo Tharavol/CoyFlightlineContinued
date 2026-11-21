@@ -23,9 +23,7 @@ local function BuildPanel()
   local category, layout = Settings.RegisterVerticalLayoutCategory(ns.title)
 
   local function AddHeader(text)
-    if layout and CreateSettingsListSectionHeaderInitializer then
-      layout:AddInitializer(CreateSettingsListSectionHeaderInitializer(text))
-    end
+    layout:AddInitializer(CreateSettingsListSectionHeaderInitializer(text))
   end
 
   local function NewSetting(key, varType, name)
@@ -69,16 +67,14 @@ local function BuildPanel()
     for _, key in ipairs(COLOR_ORDER) do
       container:Add(key, COLOR_LABELS[key])
     end
-    -- Only offered once a custom colour actually exists, since it can only be
-    -- set from the slash command.
+    -- Custom can only be set from the slash command, so only offer it once set.
     if ns.db.color == "custom" then
       container:Add("custom", COLOR_LABELS.custom)
     end
     return container:GetData()
   end
 
-  local CreateDropdown = Settings.CreateDropdown or Settings.CreateDropDown
-  CreateDropdown(category, colorSetting, GetColorOptions,
+  Settings.CreateDropdown(category, colorSetting, GetColorOptions,
     "Colour of the flight line. Use /cfl color <r> <g> <b> for anything else.")
 
   AddSlider("thickness", "Line thickness", "Thickness of the line in pixels.",
@@ -91,7 +87,7 @@ local function BuildPanel()
 end
 
 local function OpenPanel()
-  if ns.settingsCategory and Settings and Settings.OpenToCategory then
+  if ns.settingsCategory then
     Settings.OpenToCategory(ns.settingsCategory:GetID())
   else
     ns.Print("the options panel is unavailable; use /cfl help for slash commands.")
@@ -102,10 +98,7 @@ end
 -- Slash commands
 --------------------------------------------------------------------------------
 
--- Lowercases its own value at the point of comparison (S11: only the
--- keywords being matched get lowercased, not the whole input up front).
--- Bare toggles and reports the new state; explicit on/off sets it; anything
--- else is rejected instead of silently doing nothing (S8/S12).
+-- Bare toggles; explicit on/off sets; anything else is rejected.
 local function ToggleBool(key, label, value)
   value = value and value:lower()
   if value == "on" then
@@ -145,10 +138,9 @@ local function PrintStatus()
   ns.Print(("triggers: flying %s, skyriding %s, taxi %s"):format(
     tostring(db.showWhileFlying), tostring(db.showWhileGliding), tostring(db.showOnTaxi)))
 
-  -- "custom" alone doesn't say what the custom colour actually is; the RGB
-  -- triple is only ever visible via /cfl color otherwise.
+  -- Show the RGB triple for "custom"; it is not visible anywhere else.
   local colorLabel = db.color
-  if db.color == "custom" and db.customColor then
+  if db.color == "custom" then
     colorLabel = ("custom (%.2f, %.2f, %.2f)"):format(
       db.customColor.r, db.customColor.g, db.customColor.b)
   end
@@ -159,19 +151,13 @@ local function PrintStatus()
 end
 
 local function HandleReset()
-  for key, value in pairs(ns.defaults) do
-    ns.db[key] = (type(value) == "table") and ns.DeepCopy(value) or value
-  end
+  ns.Merge(ns.db, ns.defaults)
   ns.Refresh()
   ns.Print("settings restored to defaults. Reload (/reload) to refresh the options panel.")
 end
 
--- Table of { name, help, handler }, so the help list is derived from the same
--- data Dispatch matches against instead of a second hand-maintained block
--- that could drift out of sync (S13). "", "config" and "gui" are silent
--- aliases of "options" (S5): each opens the panel but carries no help text of
--- its own, so help doesn't repeat the same line four times. Likewise
--- "colour" is a silent alias of "color".
+-- { name, help, handler }; PrintHelp derives the help list from this table.
+-- Entries with empty help ("", "config", "gui", "off", "colour") are aliases.
 local COMMANDS
 local function PrintHelp()
   ns.Print("commands:")
@@ -274,10 +260,7 @@ local function HandleSlash(input)
     rawArgs[#rawArgs + 1] = word
   end
 
-  -- Only the command word is lowercased for matching (S11); arguments are
-  -- passed through in their original case, and any handler that needs to
-  -- match a keyword (on/off, a colour name) lowercases it itself at the
-  -- point of comparison.
+  -- Only the command word is lowercased; handlers lowercase their own keywords.
   local command = rawArgs[1] and rawArgs[1]:lower() or ""
 
   for _, entry in ipairs(COMMANDS) do
@@ -287,7 +270,6 @@ local function HandleSlash(input)
     end
   end
 
-  -- A typo must be visibly a typo, never a silent fallback (S4).
   ns.Print(("unknown command: %s"):format(command))
   PrintHelp()
 end
@@ -307,15 +289,7 @@ loader:SetScript("OnEvent", function(self, _, loadedAddOn)
   self:UnregisterEvent("ADDON_LOADED")
 
   ns.Settings.LoadSavedVariables(CoyFlightline_GlobalData)
-
-  -- The Settings API has changed signatures before (10.0.0, then again in
-  -- 11.0.2). If it changes again the addon should still work from slash
-  -- commands rather than erroring on load.
-  local ok, err = pcall(BuildPanel)
-  if not ok then
-    ns.Print("could not build the options panel (" .. tostring(err) ..
-      "). Slash commands still work - try /cfl help.")
-  end
+  BuildPanel()
 
   ns.Refresh()
 end)

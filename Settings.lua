@@ -1,7 +1,6 @@
 -- Settings.lua
--- Saved-variable loading and slash-argument parsing. Pulled out of Config.lua
--- so this logic can be loaded and tested outside the game; Config.lua consumes
--- it for the options panel and slash commands.
+-- Saved-variable loading and slash-argument parsing, kept free of UI code so it
+-- can be tested outside the game.
 
 local addonName, ns = ...
 
@@ -11,24 +10,11 @@ ns.Settings = {}
 -- Saved variables
 --------------------------------------------------------------------------------
 
--- Copies known, correctly-typed keys from `saved` into ns.db. Unknown keys and
--- keys whose value type does not match the default are dropped -- this is the
--- one guard against a malformed table from a future migration or a hand-edited
--- SavedVariables file.
+-- Merges known, correctly-typed keys from `saved` into ns.db; anything else
+-- (unknown keys, wrong types, a hand-edited file) is dropped.
 function ns.Settings.LoadSavedVariables(saved)
   if type(saved) == "table" then
-    -- Copy into the existing ns.db rather than replacing it: the Settings API
-    -- binds controls to this exact table reference. Unknown keys are dropped.
-    for key, value in pairs(saved) do
-      local default = ns.defaults[key]
-      if default ~= nil and type(value) == type(default) then
-        if type(value) == "table" then
-          ns.db[key] = ns.DeepCopy(value)
-        else
-          ns.db[key] = value
-        end
-      end
-    end
+    ns.Merge(ns.db, saved, ns.defaults)
   end
 
   ns.db.dbVersion = ns.DB_VERSION
@@ -47,8 +33,6 @@ function ns.Settings.HandleColor(first, second, third)
     return
   end
 
-  -- Lowercased here, at the point of comparison against the known colour
-  -- names, rather than by the caller blanket-lowering every token up front.
   first = first:lower()
 
   if ns.COLORS[first] then

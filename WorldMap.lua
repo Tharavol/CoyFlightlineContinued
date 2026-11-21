@@ -1,37 +1,17 @@
 -- WorldMap.lua
 -- Surfaces for the main map (WorldMapFrame) and the zone map (BattlefieldMapFrame).
 --
--- Both are MapCanvasMixin frames, so one adapter covers them. The important
--- detail is that the line frame is parented to the *canvas* (ScrollContainer.Child)
--- and not to the ScrollContainer: the canvas is the thing that scales and pans,
--- and it is what Blizzard's own map pins attach to. Parenting to the container
--- instead makes the line drift away from the player as soon as the map is
--- zoomed or dragged.
+-- Both are MapCanvasMixin frames. The line frame is parented to the canvas
+-- (ScrollContainer.Child), which scales and pans; parenting to the container
+-- makes the line drift when the map is zoomed or dragged.
 
 local addonName, ns = ...
 
--- IsAvailable, HideLine, ApplyStyle and RefreshThickness all come from
--- ns.Surface; only Update differs between the map canvases and the minimap.
 local CanvasSurface = setmetatable({}, { __index = ns.Surface })
 CanvasSurface.__index = CanvasSurface
 
-local function GetCanvas(mapFrame)
-  if mapFrame.GetCanvas then
-    return mapFrame:GetCanvas()
-  end
-  -- Fallback for the (unlikely) case that the mixin accessor is renamed.
-  return mapFrame.ScrollContainer and mapFrame.ScrollContainer.Child
-end
-
-local function GetMapID(mapFrame)
-  if mapFrame.GetMapID then
-    return mapFrame:GetMapID()
-  end
-  return mapFrame.mapID
-end
-
 function CanvasSurface:Update(dirX, dirY)
-  local mapID = GetMapID(self.host)
+  local mapID = self.host:GetMapID()
   if not mapID then
     return self:HideLine()
   end
@@ -60,8 +40,7 @@ function CanvasSurface:Update(dirX, dirY)
     return self:HideLine()
   end
 
-  -- The canvas rescales as the map is zoomed, so this cannot be hoisted into
-  -- ApplyStyle.
+  -- The canvas rescales as the map is zoomed.
   self:RefreshThickness()
   self.line:SetStartPoint("TOPLEFT", originX, -originY)
   self.line:SetEndPoint("TOPLEFT", endX, -endY)
@@ -69,24 +48,13 @@ function CanvasSurface:Update(dirX, dirY)
 end
 
 local function CreateCanvasSurface(mapFrame, key, dbKey)
-  local canvas = GetCanvas(mapFrame)
-  if not canvas then
-    ns.Print(("could not find the map canvas for %s; that surface is disabled."):format(key))
-    return
-  end
-
+  local canvas = mapFrame:GetCanvas()
   local lineFrame = CreateFrame("Frame", nil, canvas)
   lineFrame:SetAllPoints(canvas)
-  -- A frame-level offset only beats siblings that already existed when the
-  -- offset was chosen. Blizzard's own map pins/overlays (invasion blobs,
-  -- threat overlays, zone transition art) are also children of the canvas
-  -- and use frame levels up to 9000 (see MapCanvasPinFrameLevelsManagerMixin),
-  -- so a fixed +150 loses to them in specific zones (e.g. Silvermoon City).
-  -- A higher strata always wins over level regardless of what Blizzard adds.
+  -- Map pins on the canvas use frame levels up to 9000
+  -- (MapCanvasPinFrameLevelsManagerMixin); a higher strata stays above them (#32).
   lineFrame:SetFrameStrata("DIALOG")
   lineFrame:SetFrameLevel(canvas:GetFrameLevel() + 150)
-  -- Belt and braces: the line is already clipped to the canvas rectangle by
-  -- ClipRayToRect, and the ScrollContainer clips the canvas to the viewport.
   lineFrame:SetClipsChildren(true)
   lineFrame:Show()
 
@@ -107,35 +75,13 @@ end
 --------------------------------------------------------------------------------
 -- Attachment
 --------------------------------------------------------------------------------
--- Neither map frame can be touched at file scope: Blizzard_BattlefieldMap is
--- load-on-demand (it only loads when the zone map is first opened) and the world
--- map is not guaranteed to be loaded either.
+-- Both map addons may load after this file (Blizzard_BattlefieldMap is
+-- load-on-demand), so attach once each has loaded.
 
-local function OnAddOnLoaded(addOnName, callback)
-  if EventUtil and EventUtil.ContinueOnAddOnLoaded then
-    EventUtil.ContinueOnAddOnLoaded(addOnName, callback)
-  elseif C_AddOns.IsAddOnLoaded(addOnName) then
-    callback()
-  end
-end
-
-OnAddOnLoaded("Blizzard_WorldMap", function()
-  if WorldMapFrame then
-    CreateCanvasSurface(WorldMapFrame, "worldMap", "showWorldMap")
-  end
+EventUtil.ContinueOnAddOnLoaded("Blizzard_WorldMap", function()
+  CreateCanvasSurface(WorldMapFrame, "worldMap", "showWorldMap")
 end)
 
--- The zone map addon was called Blizzard_BattlefieldMinimap before Legion; the
--- old name is watched too so a single unexpected rename does not silently drop
--- the surface.
-local zoneMapAttached = false
-local function AttachZoneMap()
-  if zoneMapAttached then return end
-  if BattlefieldMapFrame then
-    zoneMapAttached = true
-    CreateCanvasSurface(BattlefieldMapFrame, "zoneMap", "showZoneMap")
-  end
-end
-
-OnAddOnLoaded("Blizzard_BattlefieldMap", AttachZoneMap)
-OnAddOnLoaded("Blizzard_BattlefieldMinimap", AttachZoneMap)
+EventUtil.ContinueOnAddOnLoaded("Blizzard_BattlefieldMap", function()
+  CreateCanvasSurface(BattlefieldMapFrame, "zoneMap", "showZoneMap")
+end)

@@ -34,7 +34,7 @@ read_globals = {
     "MinimalSliderWithSteppersMixin",
 
     -- Player / world state
-    "EventUtil", "GetCVarBool", "GetPlayerFacing", "IsFlying", "IsInInstance",
+    "EventUtil", "GetPlayerFacing", "IsFlying", "IsInInstance",
     "UnitOnTaxi",
 }
 
@@ -44,7 +44,7 @@ read_globals = {
 files["spec/**/*.lua"] = {
     std = "+busted",
     globals = {
-        "C_AddOns", "CreateFrame", "UIParent", "Minimap",
+        "C_AddOns", "C_CVar", "EventUtil", "CreateFrame", "UIParent", "Minimap",
         "IsInInstance", "GetPlayerFacing", "IsFlying", "UnitOnTaxi",
         "print",
     },

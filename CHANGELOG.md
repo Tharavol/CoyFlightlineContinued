@@ -8,6 +8,15 @@ starts a fresh version line at 1.0.0; the original author's
 below, which records his release. The supported client version is declared by
 `## Interface` in the TOC and is no longer duplicated in the version number.
 
+Addon summary (formerly the TOC's `## X-ReleaseNotes`): Draws a line from your character in the direction you are facing so you can see where a flight will actually take you, on three surfaces: the minimap, the zone map (Shift+M), and the world map (M). Each surface has its own toggle. By default the line is drawn while flying, while skyriding, and while travelling on a flight path, and each of those three triggers can be turned off independently; it is never drawn inside instances, because the game does not report your facing there. Line colour (white, yellow, cyan, magenta, green, or a custom RGB triple), thickness (1-6 px) and opacity (10-100%) are all configurable. Configure under Options > AddOns > CoyFlightline or with /cfl on its own; /cfl status prints current settings, /cfl help lists every command, and /cfl reset restores defaults. Source, issues and release notes: https://github.com/Tharavol/CoyFlightlineContinued
+
+## [Unreleased]
+
+### Internal
+
+- Removed guards around retail APIs that always exist (`C_PlayerInfo.GetGlidingInfo`, `C_CVar.GetCVarBool`, map-canvas accessors, `EventUtil`, Settings dropdown/header helpers) and the `pcall` around the options panel build, so a broken panel now surfaces as a Lua error (#34)
+- Merged the saved-variable copy helpers into one recursive `ns.Merge`, used for defaults, saved-variable loading and `/cfl reset`; moved the TOC's `X-ReleaseNotes` text into this file; trimmed narrative comments (#35)
+
 ## [1.2.1] - 2026-08-23
 
 ### Fixed
