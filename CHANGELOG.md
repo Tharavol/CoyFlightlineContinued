@@ -10,7 +10,7 @@ below, which records his release. The supported client version is declared by
 
 Addon summary (formerly the TOC's `## X-ReleaseNotes`): Draws a line from your character in the direction you are facing so you can see where a flight will actually take you, on three surfaces: the minimap, the zone map (Shift+M), and the world map (M). Each surface has its own toggle. By default the line is drawn while flying, while skyriding, and while travelling on a flight path, and each of those three triggers can be turned off independently; it is never drawn inside instances, because the game does not report your facing there. Line colour (white, yellow, cyan, magenta, green, or a custom RGB triple), thickness (1-6 px) and opacity (10-100%) are all configurable. Configure under Options > AddOns > CoyFlightline or with /cfl on its own; /cfl status prints current settings, /cfl help lists every command, and /cfl reset restores defaults. Source, issues and release notes: https://github.com/Tharavol/CoyFlightlineContinued
 
-## [Unreleased]
+## [1.2.2] - 2026-11-21
 
 ### Changed
 - Retail only: the TOC declares `AllowLoadGameType: standard`, so World of Warcraft: Forever lists the addon as unavailable for that game type instead of out of date (#36). Forever has no flying.
